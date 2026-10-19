@@ -1,9 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&display=swap');
 @import 'tailwindcss';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
+
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Fraunces', Georgia, serif;
+
+    --font-display:'Nunito', ui-sans-serif, system-ui, sans-serif;
+    --font-family-display: var(--font-display); 
+
+    --color-oliveKanvu: #4D5630;
+    --color-greenLight: #C7E0B4;
+    --color-olive200: #d4e0b8;
+    --color-stone900: #1C1C1A;
+    --color-Stone100: #f0f0e;
+    --color-stone400: #9e9e93;
+    --color-stone500: #78786e;
+    --color-olive700 : #7A855B;
+}
+
+body {
+    font-family: var(--font-sans);
+    background: #f0f0eb;
 }
