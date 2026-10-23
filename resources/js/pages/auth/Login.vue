@@ -7,6 +7,10 @@ import LoginForm from '../../components/auth/LoginForm.vue';
 import ForgotPassword from '../../components/auth/Forgot_password_form.vue';
 
 const currentView = ref('login');
+
+function handleLogin(credentials) {
+    router.post('/login', credentials);
+}
 </script>
 
 <template>
@@ -14,7 +18,7 @@ const currentView = ref('login');
         <LoginForm
             v-if="currentView === 'login'"
             @forgot-password="currentView = 'forgot-password'"
-            @submit="router.visit('/dashboard')"
+            @submit="handleLogin"
         />
 
         <ForgotPassword

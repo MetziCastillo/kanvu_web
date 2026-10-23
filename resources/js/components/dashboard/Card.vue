@@ -1,28 +1,62 @@
 <script setup>
+    import { computed } from 'vue';
+    import { usePage } from '@inertiajs/vue3';
     import AppIcon from '../../components/AppIcon.vue';
 
-    const cards = [
-        {
-            number: '6',
-            icon: 'calendar',
-            subtitle: 'Citas totales',
-        },
-        {
-            number: '5',
-            icon: 'check',
-            subtitle: 'Asistencias',
-        },
-        {
-            number: '10',
-            icon: 'pending',
-            subtitle: 'Pendientes de agendar',
-        },
-        {
-            number: '2',
-            icon: 'clock',
-            subtitle: 'Próximas',
-        },
-    ];
+    const page = usePage();
+    const usuario = computed(() => page.props.auth.user);
+    const rolId = computed(() => usuario.value?.role?.id);
+
+
+    const cardsRole = {
+        1: [
+            {
+                number: '7',
+                icon: 'users',
+                subtitle: 'Cuentas Activas',
+            },
+            {
+                number: '5',
+                icon: 'check',
+                subtitle: 'Cuentas Activas',
+            },
+            {
+                number: '1',
+                icon: 'lock',
+                subtitle: 'Cuenta Suspendida',
+            },
+            {
+                number: '2',
+                icon: 'graduationCap',
+                subtitle: 'Estudiantes Vigentes',
+            },
+        ],
+        5: [
+            {
+                number: '6',
+                icon: 'calendar',
+                subtitle: 'Citas totales',
+            },
+            {
+                number: '5',
+                icon: 'check',
+                subtitle: 'Asistencias',
+            },
+            {
+                number: '10',
+                icon: 'pending',
+                subtitle: 'Pendientes de agendar',
+            },
+            {
+                number: '2',
+                icon: 'clock',
+                subtitle: 'Próximas',
+            },
+        ],
+    };
+
+    const cards = computed(() => cardsRole[rolId.value] ?? []);
+
 </script>
 
 <template>
@@ -35,7 +69,7 @@
             </div>
 
             <div>
-                <p class="font-display text-3xl font-semibold text-stone900">
+                <p class="text-3xl font-semibold text-stone900">
                     {{ card.number }}
                 </p>
 
