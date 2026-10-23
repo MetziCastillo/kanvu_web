@@ -4,24 +4,33 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
-
 @theme {
-    --font-sans: 'Fraunces', Georgia, serif;
+    /* Intercambiadas para que Nunito sea la principal y Fraunces la de títulos/display */
+    --font-sans: 'Nunito', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Fraunces', Georgia, serif;
 
-    --font-display:'Nunito', ui-sans-serif, system-ui, sans-serif;
-    --font-family-display: var(--font-display); 
-
+    /* Tus colores personalizados (normalizados a minúsculas para evitar errores) */
     --color-oliveKanvu: #4D5630;
     --color-greenLight: #C7E0B4;
     --color-olive200: #d4e0b8;
-    --color-stone900: #1C1C1A;
-    --color-Stone100: #f0f0e;
+    --color-olive100: #eaf0d8;
+    --color-olive500: #798A4C;
+    --color-stone900: #1c1c1a;
+    --color-Stone100: #F0F0EB;
+    --color-stone300: #c4c4b8;
     --color-stone400: #9e9e93;
     --color-stone500: #78786e;
-    --color-olive700 : #7A855B;
+    --color-stone700: #44443e;
+    --color-olive700: #7A855B;
+    --color-olive50: #f5f8ee;
+
+
+    --color-sandDeep: #e8dfc8;
+    --color-sand: #f5f0e8;
 }
 
 body {
+    /* Al definir --font-sans arriba, body heredará Nunito automáticamente */
     font-family: var(--font-sans);
-    background: #f0f0eb;
+    background: var(--color-Stone100);
 }
