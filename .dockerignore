@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+.git
+node_modules
+vendor
+kanvu_backup.sql
+docker-compose.yml
+docker-compose.*.yml
+CLAUDE.md
+AGENTS.md
