@@ -195,11 +195,18 @@
             stroke-linejoin="round" :stroke="color" />
     </svg>
 
-    <svg v-if="name === 'monitor'" xmlns="http://www.w3.org/2000/svg" :width="size" :height="size" viewBox="0 0 15 15" fill="none">
+    <svg v-if="name === 'monitor'" xmlns="http://www.w3.org/2000/svg" :width="size" :height="size" viewBox="0 0 15 15"
+        fill="none">
         <path
             d="M2.5 1.875H12.5C13.1904 1.875 13.75 2.43464 13.75 3.125V9.375C13.75 10.0654 13.1904 10.625 12.5 10.625H2.5C1.80964 10.625 1.25 10.0654 1.25 9.375V3.125C1.25 2.43464 1.80964 1.875 2.5 1.875Z"
             stroke-width="1.09375" stroke-linecap="round" stroke-linejoin="round" :stroke="color" />
         <path d="M5 13.125H7.5M7.5 13.125H10M7.5 13.125V10.625" stroke-width="1.09375" stroke-linecap="round"
+            stroke-linejoin="round" :stroke="color" />
+    </svg>
+
+    <svg v-if="name === 'close'" xmlns="http://www.w3.org/2000/svg" :width="size" :height="size" viewBox="0 0 18 18"
+        fill="none">
+        <path d="M13.5 4.5L9 9M9 9L4.5 13.5M9 9L4.5 4.5M9 9L13.5 13.5" stroke-width="1.5" stroke-linecap="round"
             stroke-linejoin="round" :stroke="color" />
     </svg>
 </template>

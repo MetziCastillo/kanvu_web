@@ -1,6 +1,6 @@
 <script setup>
     import { computed } from 'vue';
-    import { usePage } from '@inertiajs/vue3';
+    import { usePage, Link } from '@inertiajs/vue3';
 
     import AppIcon from '../../components/AppIcon.vue';
     import Card from './Card.vue';
@@ -11,16 +11,18 @@
 
     const text = {
         1: {
-                title: 'Panel de administración',
-                subtitle: 'Supervisa cuentas, estructura escolar y configuración general de Kanvu.',
-                button: 'Crear usuario',
+            title: 'Panel de administración',
+            subtitle: 'Supervisa cuentas, estructura escolar y configuración general de Kanvu.',
+            button: 'Crear usuario',
+            buttonRoute: '/user_management/Dashboard_um',
         },
         5: {
-            title:'',
+            title: '',
             button: 'Nueva Cita',
+            buttonRoute: ''
         }
     }
-    
+
 
     const titles = computed(() => text[rolId.value] ?? {});
 </script>
@@ -36,11 +38,11 @@
                 <h1 class="font-display text-2xl sm:text-3xl font-semibold text-stone-900">{{titles.title}}</h1>
                 <p class="text-base mt-1.5 text-stone-500">{{titles.subtitle}}</p>
             </div>
-            <button
+            <Link :href="titles.buttonRoute"
                 class="bg-oliveKanvu text-white flex justify-center items-center gap-2 px-6 sm:px-8 py-3 rounded-xl sm:rounded-xl shadow-sm hover:opacity-95 transition-opacity w-full md:w-auto">
-                <AppIcon name="plus" :size="18" color="white" />
-                {{titles.button}}
-            </button>
+            <AppIcon name="plus" :size="18" color="white" />
+            {{titles.button}}
+            </Link>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-8">
