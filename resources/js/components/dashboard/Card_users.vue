@@ -33,13 +33,13 @@
 </script>
 
 <template>
-    <div class="h-3 rounded-full overflow-hidden flex flex bg-Stone100">
+    <div class="h-3 rounded-full overflow-hidden flex flex bg-stone100">
         <div class="bg-olive500" style="width: 10%;"></div>
         <div class="bg-sandDeep" style="width: 50%;"></div>
     </div>
     <div class="grid grid-cols-3 gap-3 mt-5">
 
-        <div class="rounded-xl p-4 bg-Stone100" v-for="card in cards" :key="card.title">
+        <div class="rounded-xl p-4 bg-stone100" v-for="card in cards" :key="card.title">
             <div class="flex items-center gap-2 mb-1">
                 <span class="w-2 h-2 rounded-full" :class="`bg-${card.color}`"></span>
                 <span class="text-xs font-semibold text-stone500">{{card.title}}</span>

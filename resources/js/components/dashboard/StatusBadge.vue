@@ -11,7 +11,7 @@
   const statuses = {
     coming: {
       label: 'Próxima',
-      classes: 'bg-greenLight text-oliveKanvu',
+      classes: 'bg-greenLight text-olive700',
     },
     completed: {
       label: 'Completada',

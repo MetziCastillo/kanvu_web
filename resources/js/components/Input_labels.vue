@@ -4,7 +4,6 @@
     defineProps({
         title: {
             type: String,
-            required: true
         },
         label: {
             type: String,

@@ -63,7 +63,7 @@
                 class="flex items-center gap-3 p-3 rounded-xl text-left hover:bg-stone-50 transition-colors">
                 <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-olive50"
                 :style="{backgroundColor: rolId === 1 ? 'var(--color-olive50)' : 'transparent'}">
-                    <AppIcon :name="ac.icon" :size="18" color="var(--color-oliveKanvu)" />
+                    <AppIcon :name="ac.icon" :size="18" color="var(--color-olive700)" />
                 </div>
                 <div class="flex-1">
                     <p class="text-sm font-semibold text-stone900">{{ac.title}}</p>

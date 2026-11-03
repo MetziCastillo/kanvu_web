@@ -21,8 +21,8 @@
                     Volver
                 </button>
 
-                <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4 bg-oliveKanvu/10">
-                    <svg class="w-5 h-5 text-oliveKanvu" fill="none" stroke="currentColor" stroke-width="2"
+                <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4 bg-olive700/10">
+                    <svg class="w-5 h-5 text-olive700" fill="none" stroke="currentColor" stroke-width="2"
                         viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
@@ -49,21 +49,21 @@
                         </svg>
                     </span>
                     <input type="email" placeholder="correo@universidad.edu.mx"
-                        class="w-full pl-10 pr-4 py-3 text-sm rounded-xl border border-stone-200 bg-white text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-oliveKanvu/20 focus:border-oliveKanvu transition-all" />
+                        class="w-full pl-10 pr-4 py-3 text-sm rounded-xl border border-stone-200 bg-white text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-olive700/20 focus:border-olive700 transition-all" />
                 </div>
             </div>
 
             <!-- Btn Primary Large Full -->
             <button @click="send = true"
-                class="w-full py-3.5 px-5 rounded-xl font-medium text-sm text-white bg-oliveKanvu hover:opacity-95 shadow-sm active:scale-[0.99] transition-all cursor-pointer">
+                class="w-full py-3.5 px-5 rounded-xl font-medium text-sm text-white bg-olive700 hover:opacity-95 shadow-sm active:scale-[0.99] transition-all cursor-pointer">
                 Enviar enlace de recuperación
             </button>
         </div>
     </div>
     <div v-else>
         <div class="flex flex-col gap-5">
-            <div class="w-14 h-14 rounded-2xl flex items-center justify-center bg-oliveKanvu/20">
-                <svg class="w-7 h-7 text-oliveKanvu" fill="none" stroke="currentColor" stroke-width="2"
+            <div class="w-14 h-14 rounded-2xl flex items-center justify-center bg-olive700/20">
+                <svg class="w-7 h-7 text-olive700" fill="none" stroke="currentColor" stroke-width="2"
                     viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
                 </svg>
@@ -75,8 +75,8 @@
                     tardar unos minutos.
                 </p>
             </div>
-            <div class="rounded-xl p-4 bg-oliveKanvu/10">
-                <p class="text-xs text-oliveKanvu font-medium">Revisa también tu carpeta de spam o correo no deseado.
+            <div class="rounded-xl p-4 bg-olive700/10">
+                <p class="text-xs text-olive700 font-medium">Revisa también tu carpeta de spam o correo no deseado.
                 </p>
             </div>
             <button @click="emit('back')"

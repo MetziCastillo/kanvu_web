@@ -6,7 +6,7 @@
 </script>
 
 <template>
-    <div class="rounded-2xl p-6 flex flex-col gap-4 bg-oliveKanvu">
+    <div class="rounded-2xl p-6 flex flex-col gap-4 bg-olive700">
         <div class="flex items-center justify-between">
             <p class="text-xs font-semibold uppercase tracking-wider text-olive200">Próxima Cita</p>
             <Statusbadge name="coming" />

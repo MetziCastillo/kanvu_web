@@ -13,7 +13,7 @@
             {
                 number: '7',
                 icon: 'users',
-                subtitle: 'Cuentas Activas',
+                subtitle: 'Usuarios Registrados',
             },
             {
                 number: '5',
@@ -65,7 +65,7 @@
         <div class="flex items-center gap-4">
 
             <div class="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 bg-[#F5F8EE]">
-                <AppIcon :name="card.icon" :size="18" color="var(--color-oliveKanvu)" />
+                <AppIcon :name="card.icon" :size="18" color="var(--color-olive700)" />
             </div>
 
             <div>

@@ -14,6 +14,7 @@ use Illuminate\Notifications\Notifiable;
     'first_name',
     'last_name',
     'id_rol',
+    'status_id',
     'email',
     'password',
     'enable',
@@ -51,5 +52,9 @@ class User extends Authenticatable
     public function employee()
     {
         return $this->hasOne(Employee::class);
+    }
+    public function user_statu()
+    {
+        return $this->belongsTo(Users_statu::class, 'status_id');
     }
 }

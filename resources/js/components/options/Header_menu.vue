@@ -1,7 +1,7 @@
 <script setup>
     import { computed } from 'vue';
-    import { usePage} from '@inertiajs/vue3';
-    
+    import { usePage } from '@inertiajs/vue3';
+
     import AppIcon from '../../components/AppIcon.vue';
 
     const emit = defineEmits(['create-user']);
@@ -27,7 +27,6 @@
         },
     }
 
-
     const titles = computed(() => text[rolId.value] ?? {});
 </script>
 
@@ -39,9 +38,9 @@
                 <p class="text-base mt-1.5 text-stone-500">{{titles.subtitle}}</p>
             </div>
             <button @click="emit('create-user')"
-                class="bg-oliveKanvu text-white flex justify-center items-center gap-2 px-6 sm:px-8 py-3 rounded-xl sm:rounded-xl shadow-sm hover:opacity-95 transition-opacity w-full md:w-auto">
-            <AppIcon name="plus" :size="18" color="white" />
-            {{titles.button}}
+                class="bg-olive700 text-white flex justify-center items-center gap-2 px-6 sm:px-8 py-3 rounded-xl sm:rounded-xl shadow-sm hover:opacity-95 transition-opacity w-full md:w-auto">
+                <AppIcon name="plus" :size="18" color="white" />
+                {{titles.button}}
             </button>
         </div>
     </div>

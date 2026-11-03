@@ -1,5 +1,5 @@
 <script setup>
-    import { computed, ref, watch } from 'vue';
+    import { computed, ref, watch, onMounted } from 'vue';
     import { usePage } from '@inertiajs/vue3';
 
     import AppIcon from '../../components/AppIcon.vue';
@@ -9,12 +9,15 @@
         roles: { type: Array, required: true },
         careers: { type: Array, required: true },
         departments: { type: Array, required: true },
+        editingUser: { type: Object, default: null },
     });
 
     const page = usePage();
     const usuario = computed(() => page.props.auth.user);
     const rolId = computed(() => usuario.value?.role?.id);
-    const emit = defineEmits(['create-user', 'user-created']);
+    const emit = defineEmits(['create-user', 'user-created', 'user-updated']);
+
+    const isEdit = computed(() => !!props.editingUser);
 
     const text_name = ref('');
     const text_lastName = ref('');
@@ -29,9 +32,11 @@
     const groups = ref([]);
     const loadingGroups = ref(false);
 
-    // --- Estado para guardado ---
     const saving = ref(false);
     const errors = ref({});
+
+    // Bandera para evitar que los watch borren datos al hidratar
+    const hydrating = ref(false);
 
     const titleRoles = {
         1: 'Administrador',
@@ -43,33 +48,9 @@
     };
 
     const Viewoptions = {
-        1: {
-            CreateName: true,
-            CreateLastName: true,
-            CreateEmail: true,
-            SelectRol: true,
-            SelectDepartment: true,
-            createMatricula: true,
-            CreateNomina: true,
-        },
-        2: {
-            CreateName: true,
-            CreateLastName: true,
-            CreateEmail: true,
-            SelectRol: false,
-            SelectDepartment: false,
-            createMatricula: false,
-            CreateNomina: true,
-        },
-        3: {
-            CreateName: true,
-            CreateLastName: true,
-            CreateEmail: true,
-            SelectRol: false,
-            SelectDepartment: true,
-            createMatricula: false,
-            CreateNomina: true,
-        }
+        1: { CreateName: true, CreateLastName: true, CreateEmail: true, SelectRol: true, SelectDepartment: true, createMatricula: true, CreateNomina: true },
+        2: { CreateName: true, CreateLastName: true, CreateEmail: true, SelectRol: false, SelectDepartment: false, createMatricula: false, CreateNomina: true },
+        3: { CreateName: true, CreateLastName: true, CreateEmail: true, SelectRol: false, SelectDepartment: true, createMatricula: false, CreateNomina: true }
     };
 
     const options = computed(() => Viewoptions[rolId.value] ?? {});
@@ -96,13 +77,9 @@
         return textsAdmin[id] ?? textBoss[id] ?? { advise: defaultAdvise };
     });
 
-    // Cargar grupos cuando cambia la carrera
-    watch(selectedCareer, async (careerId) => {
-        selectedGroup.value = '';
+    const loadGroups = async (careerId) => {
         groups.value = [];
-
         if (!careerId) return;
-
         loadingGroups.value = true;
         try {
             const res = await fetch(`/groups/by-career/${careerId}`, {
@@ -117,14 +94,72 @@
         } finally {
             loadingGroups.value = false;
         }
+    };
+
+    watch(text_email, (newValue) => {
+        if (newValue.endsWith('@')) {
+            text_email.value = newValue + 'virtual.utsc.edu.mx';
+        }
     });
 
-    watch(selectedRole, (newRole) => {
+    watch(selectedCareer, async (careerId, oldCareerId) => {
+        if (hydrating.value) return;
+        if (careerId === oldCareerId) return;
+
+        selectedGroup.value = '';
+        await loadGroups(careerId);
+    });
+
+    watch(selectedRole, (newRole, oldRole) => {
+        if (hydrating.value) return;
+        if (newRole === oldRole) return;
+
         if (Number(newRole) !== 6) {
             selectedCareer.value = '';
             selectedGroup.value = '';
             groups.value = [];
         }
+    });
+
+    const hydrateForm = async (u) => {
+        hydrating.value = true;
+        try {
+            text_name.value = u.name ?? '';
+            text_lastName.value = u.last_name ?? '';
+            text_email.value = u.email ?? '';
+            text_matricula.value = u.matricula ?? '';
+            text_nomina.value = u.nomina ?? '';
+
+            // Convertimos a Número para que haga match con los <option>
+            const roleNum = Number(u.id_rol ?? u.role_id);
+            selectedRole.value = roleNum || '';
+            selectedDepartment.value = u.department_id ? Number(u.department_id) : '';
+
+            if (roleNum === 6) {
+                const careerNum = u.career_id ? Number(u.career_id) : '';
+                selectedCareer.value = careerNum;
+
+                if (careerNum) {
+                    await loadGroups(careerNum);
+                    // 👈 ASIGNACIÓN CORRECTA: Solo el ID del grupo
+                    selectedGroup.value = u.group_id ? Number(u.group_id) : '';
+                }
+            } else {
+                selectedCareer.value = '';
+                selectedGroup.value = '';
+                groups.value = [];
+            }
+        } finally {
+            setTimeout(() => { hydrating.value = false; }, 0);
+        }
+    };
+
+    onMounted(() => {
+        if (props.editingUser) hydrateForm(props.editingUser);
+    });
+
+    watch(() => props.editingUser, (u) => {
+        if (u) hydrateForm(u);
     });
 
     const isValid = computed(() => {
@@ -140,8 +175,9 @@
             if (!selectedCareer.value) return false;
             if (!selectedGroup.value) return false;
         } else {
-            if (!text_nomina.value.trim()) return false;
-            if (options.value.SelectDepartment && !selectedDepartment.value) return false;
+            if (roleNum !== 1 && options.value.SelectDepartment && !selectedDepartment.value && !text_nomina.value) {
+                return false;
+            }
         }
 
         return true;
@@ -155,7 +191,6 @@
 
         const roleNum = Number(selectedRole.value);
 
-        // Construir payload según el rol
         const payload = {
             name: text_name.value.trim(),
             last_name: text_lastName.value.trim(),
@@ -164,23 +199,23 @@
         };
 
         if (roleNum === 6) {
-            // Estudiante
             payload.matricula = text_matricula.value.trim();
             payload.career_id = Number(selectedCareer.value);
             payload.group_id = Number(selectedGroup.value);
         } else {
-            // Staff (admin, jefes, enfermero, psicólogo)
-            payload.nomina = text_nomina.value.trim();
-            if (options.value.SelectDepartment && selectedDepartment.value) {
+            if (roleNum !== 1 && options.value.SelectDepartment && selectedDepartment.value) {
                 payload.department_id = Number(selectedDepartment.value);
+                payload.nomina = text_nomina.value.trim();
             }
         }
 
         try {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            const url = isEdit.value ? `/users/${props.editingUser.user_id}` : '/users';
+            const method = isEdit.value ? 'PUT' : 'POST';
 
-            const res = await fetch('/users', {
-                method: 'POST',
+            const res = await fetch(url, {
+                method,
                 headers: {
                     'Content-Type': 'application/json',
                     Accept: 'application/json',
@@ -193,22 +228,24 @@
             const data = await res.json().catch(() => ({}));
 
             if (!res.ok) {
-                // Laravel devuelve 422 con { errors: {...} }
                 if (res.status === 422 && data.errors) {
                     errors.value = data.errors;
                 } else {
-                    errors.value = { general: [data.message ?? 'Error al crear el usuario.'] };
+                    errors.value = { general: [data.message ?? 'Error al guardar el usuario.'] };
                 }
                 return;
             }
 
-            // Éxito
-            emit('user-created', data.user ?? data);
-            resetForm();
-            emit('create-user'); // cierra el modal (tu evento actual)
+            if (isEdit.value) {
+                emit('user-updated', data.user ?? data);
+            } else {
+                emit('user-created', data.user ?? data);
+                resetForm();
+            }
+            emit('create-user');
         } catch (e) {
             console.error(e);
-            errors.value = { general: ['Error de conexión al crear el usuario.'] };
+            errors.value = { general: ['Error de conexión al guardar el usuario.'] };
         } finally {
             saving.value = false;
         }
@@ -231,11 +268,15 @@
 
 <template>
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden">
-        <div class="flex items-center justify-between px-7 py-5 border-b border-Stone100">
+        <div class="flex items-center justify-between px-7 py-5 border-b border-stone100">
             <div>
-                <h2 class="text-2xl font-semibold text-stone900">Crear usuario</h2>
+                <h2 class="text-2xl font-semibold text-stone900">
+                    {{ isEdit ? 'Editar usuario' : 'Crear usuario' }}
+                </h2>
                 <p class="text-sm mt-1 text-stone500">
-                    Configura sus datos, rol y asociación escolar.
+                    {{ isEdit
+                    ? 'Modifica los datos del usuario. Los cambios se aplican al guardar.'
+                    : 'Configura sus datos, rol y asociación escolar.' }}
                 </p>
             </div>
             <button @click="emit('create-user')"
@@ -253,7 +294,7 @@
                 type="email" v-model="text_email" />
 
             <div class="rounded-xl p-4 flex gap-3 bg-olive50">
-                <AppIcon name="shield" size="18" color="var(--color-oliveKanvu)" />
+                <AppIcon name="shield" size="18" color="var(--color-olive700)" />
                 <p class="text-xs leading-relaxed text-olive700">{{ roleInfo.advise }}</p>
             </div>
 
@@ -271,9 +312,8 @@
 
             <InputLabel v-if="Number(selectedRole) === 6 && options.createMatricula" title="Matrícula" label="matricula"
                 placeholder="00000" type="text" v-model="text_matricula" />
-            <InputLabel v-if="Number(selectedRole) !== 6 && Number(selectedRole) !== ''" title="Nómina" label="nomina"
-                placeholder="00000" type="text" v-model="text_nomina" />
-
+            <InputLabel v-if="Number(selectedRole) !== 6 && Number(selectedRole) !== 1 && selectedRole !== ''"
+                title="Nómina" label="nomina" placeholder="00000" type="text" v-model="text_nomina" />
 
             <div v-if="Number(selectedRole) === 6" class="flex flex-col gap-1.5">
                 <label class="text-xs font-semibold uppercase tracking-wider text-stone500">Carrera</label>
@@ -301,7 +341,7 @@
                 <p v-if="errors.group_id" class="text-xs text-red-600">{{ errors.group_id[0] }}</p>
             </div>
 
-            <div v-if="Number(selectedRole) !== 6 && Number(selectedRole) !==''  && options.SelectDepartment"
+            <div v-if="Number(selectedRole) !== 6 && Number(selectedRole) !== 1 && selectedRole !== '' && options.SelectDepartment"
                 class="flex flex-col gap-1.5">
                 <label class="text-xs font-semibold uppercase tracking-wider text-stone500">Departamento</label>
                 <select v-model="selectedDepartment" name="department_id"
@@ -316,7 +356,6 @@
                 <p v-if="errors.department_id" class="text-xs text-red-600">{{ errors.department_id[0] }}</p>
             </div>
 
-            <!-- Errores generales -->
             <div v-if="errors.general" class="md:col-span-2 rounded-xl p-3 bg-red-50 border border-red-200">
                 <p class="text-xs text-red-700">{{ errors.general[0] }}</p>
             </div>
@@ -325,14 +364,16 @@
             </div>
 
         </div>
-        <div class="px-7 py-5 border-t flex justify-end gap-3 border border-Stone100 bg-Stone100">
+        <div class="px-7 py-5 border-t flex justify-end gap-3 border border-stone100 bg-stone100">
             <button type="button" @click="emit('create-user')"
                 class="rounded-xl font-semibold transition-all active:scale-[0.97] select-none cursor-pointer inline-flex items-center justify-center gap-2 px-6 py-3 text-sm border-[1.5px] border-olive300 text-olive700 bg-transparent">
                 Cancelar
             </button>
             <button type="button" @click="saveUser" :disabled="!isValid || saving"
                 class="rounded-xl font-semibold transition-all active:scale-[0.97] select-none inline-flex items-center justify-center gap-2 px-6 py-3 text-sm bg-olive600 text-white disabled:opacity-40 disabled:cursor-not-allowed">
-                {{ saving ? 'Creando...' : 'Crear cuenta' }}
+                {{ saving
+                ? (isEdit ? 'Guardando...' : 'Creando...')
+                : (isEdit ? 'Guardar cambios' : 'Crear cuenta') }}
             </button>
         </div>
     </div>

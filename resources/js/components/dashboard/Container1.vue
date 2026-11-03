@@ -39,7 +39,7 @@
                 <p class="text-base mt-1.5 text-stone-500">{{titles.subtitle}}</p>
             </div>
             <Link :href="titles.buttonRoute"
-                class="bg-oliveKanvu text-white flex justify-center items-center gap-2 px-6 sm:px-8 py-3 rounded-xl sm:rounded-xl shadow-sm hover:opacity-95 transition-opacity w-full md:w-auto">
+                class="bg-olive700 text-white flex justify-center items-center gap-2 px-6 sm:px-8 py-3 rounded-xl sm:rounded-xl shadow-sm hover:opacity-95 transition-opacity w-full md:w-auto">
             <AppIcon name="plus" :size="18" color="white" />
             {{titles.button}}
             </Link>

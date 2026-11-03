@@ -55,9 +55,9 @@
 </script>
 <template>
     <div v-for="card in date" :key="card.area"
-        class="flex items-center gap-5 px-6 py-5 border-b last:border-b-0 hover:bg-stone-50 cursor-pointer transition-colors border border-Stone100">
+        class="flex items-center gap-5 px-6 py-5 border-b last:border-b-0 hover:bg-stone-50 cursor-pointer transition-colors border border-stone100">
         <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-sand">
-            <AppIcon :name="card.icon" :size="20" color="var(--color-oliveKanvu)" />
+            <AppIcon :name="card.icon" :size="20" color="var(--color-olive700)" />
         </div>
         <div class="flex-1 min-w-0">
             <p class="font-semibold text-base truncate text-stone900">{{card.area}}</p>
