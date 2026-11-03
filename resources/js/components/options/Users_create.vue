@@ -35,7 +35,6 @@
     const saving = ref(false);
     const errors = ref({});
 
-    // Bandera para evitar que los watch borren datos al hidratar
     const hydrating = ref(false);
 
     const titleRoles = {
@@ -130,7 +129,6 @@
             text_matricula.value = u.matricula ?? '';
             text_nomina.value = u.nomina ?? '';
 
-            // Convertimos a Número para que haga match con los <option>
             const roleNum = Number(u.id_rol ?? u.role_id);
             selectedRole.value = roleNum || '';
             selectedDepartment.value = u.department_id ? Number(u.department_id) : '';
@@ -141,7 +139,6 @@
 
                 if (careerNum) {
                     await loadGroups(careerNum);
-                    // 👈 ASIGNACIÓN CORRECTA: Solo el ID del grupo
                     selectedGroup.value = u.group_id ? Number(u.group_id) : '';
                 }
             } else {

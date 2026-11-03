@@ -21,7 +21,7 @@
                 <div class="flex flex-col gap-5">
                     <QuickAccess />
                     <CardNote />
-                </div>  
+                </div>
             </div>
 
         </main>

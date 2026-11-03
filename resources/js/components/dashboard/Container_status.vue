@@ -1,5 +1,13 @@
 <script setup>
+    import { computed } from 'vue';
     import CardUsers from './Card_users.vue';
+    import { router } from '@inertiajs/vue3';
+
+    const informUsers = computed(() => page.props.usersInformation);
+
+    const handleUsers = () => {
+        router.get('/user_management/Dashboard_um');
+    };
 
 </script>
 
@@ -11,7 +19,7 @@
                 <p class="font-semibold text-stone900">Estado de cuentas</p>
                 <p class="text-sm mt-1 text-stone500">Resumen operativo, sin información clínica.</p>
             </div>
-            <button class="text-sm font-semibold text-olive700">Ver usuarios</button>
+            <button @click="handleUsers" class="text-sm font-semibold text-olive700">Ver usuarios</button>
         </div>
         <div class="p-6">
             <CardUsers />

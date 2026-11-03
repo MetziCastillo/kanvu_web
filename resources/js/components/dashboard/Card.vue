@@ -7,26 +7,36 @@
     const usuario = computed(() => page.props.auth.user);
     const rolId = computed(() => usuario.value?.role?.id);
 
+    const informUsers = computed(() => page.props.usersInformation);
+
+    const activeUsers = computed(() => informUsers.value.filter(u => Number(u.status_id) === 1).length);
+    const suspendUsers = computed(() => informUsers.value.filter(u => Number(u.status_id) === 2).length);
+    const studentUsers = computed(() =>
+        informUsers.value.filter(u => u.id_rol === 6 && ![2, 3].includes(u.status_id)).length
+    );
+
+    const usuariosTotales = informUsers.value.length;
+
 
     const cardsRole = {
         1: [
             {
-                number: '7',
+                number: usuariosTotales,
                 icon: 'users',
                 subtitle: 'Usuarios Registrados',
             },
             {
-                number: '5',
+                number: activeUsers,
                 icon: 'check',
                 subtitle: 'Cuentas Activas',
             },
             {
-                number: '1',
+                number: suspendUsers,
                 icon: 'lock',
                 subtitle: 'Cuenta Suspendida',
             },
             {
-                number: '2',
+                number: studentUsers,
                 icon: 'graduationCap',
                 subtitle: 'Estudiantes Vigentes',
             },
