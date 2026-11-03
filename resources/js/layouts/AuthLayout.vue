@@ -2,7 +2,7 @@
     <div class="min-h-screen flex bg-stone-100">
         <!-- Panel izquierdo: identidad de Kanvu -->
         <aside
-            class="hidden lg:flex flex-col justify-between w-[480px] shrink-0 p-12 relative overflow-hidden bg-oliveKanvu">
+            class="hidden lg:flex flex-col justify-between w-[480px] shrink-0 p-12 relative overflow-hidden bg-olive700">
             <!-- Decoración -->
             <div class="absolute -top-24 -left-24 w-96 h-96 rounded-full opacity-10 border-[80px] border-emerald-300">
             </div>
@@ -67,7 +67,7 @@
             <div class="w-full max-w-md">
                 <!-- Logo visible en móvil -->
                 <div class="flex items-center gap-3 mb-10 lg:hidden">
-                    <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-oliveKanvu">
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-olive700">
                         <span class="text-white font-semibold"></span>
                     </div>
 

@@ -5,32 +5,37 @@
 @source '../../storage/framework/views/*.php';
 
 @theme {
-    /* Intercambiadas para que Nunito sea la principal y Fraunces la de títulos/display */
+
     --font-sans: 'Nunito', ui-sans-serif, system-ui, sans-serif;
     --font-display: 'Fraunces', Georgia, serif;
 
-    /* Tus colores personalizados (normalizados a minúsculas para evitar errores) */
-    --color-oliveKanvu: #4D5630;
-    --color-greenLight: #C7E0B4;
-    --color-olive200: #d4e0b8;
+    --color-olive50: #f5f8ee;
     --color-olive100: #eaf0d8;
+    --color-olive200: #d4e0b8;
+    --color-olive300: #b5c28d;
+    --color-olive400: #94a466;
     --color-olive500: #798A4C;
-    --color-stone900: #1c1c1a;
-    --color-Stone100: #F0F0EB;
+    --color-olive600: #62703e;
+    --color-olive700: #4d5630;
+    --color-olive800: #3a4022;
+    --color-olive900: #2a2e1a;
+
+    --color-stone100: #f0f0eb;
     --color-stone300: #c4c4b8;
     --color-stone400: #9e9e93;
     --color-stone500: #78786e;
     --color-stone700: #44443e;
-    --color-olive700: #7A855B;
-    --color-olive50: #f5f8ee;
+    --color-stone900: #1c1c1a;
 
-
+    --color-greenLight: #C7E0B4;    
     --color-sandDeep: #e8dfc8;
     --color-sand: #f5f0e8;
+    --color-sage: #d4e0b8;
+    --color-mist: #eaf0d8;
 }
 
 body {
     /* Al definir --font-sans arriba, body heredará Nunito automáticamente */
     font-family: var(--font-sans);
-    background: var(--color-Stone100);
+    background: var(--color-stone100);
 }

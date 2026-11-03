@@ -26,10 +26,10 @@
 
 <template>
     <div class="rounded-2xl p-5 flex gap-3 bg-olive50">
-        <AppIcon :name="cards.icon" :size="19" color="var(--color-oliveKanvu)"/>
+        <AppIcon :name="cards.icon" :size="19" color="var(--color-olive700)"/>
         <div>
             <p class="text-sm font-semibold text-olive700">{{cards.title}}</p>
-            <p class="text-xs leading-relaxed mt-1 text-oliveKanvu">{{cards.subtitle}}</p>
+            <p class="text-xs leading-relaxed mt-1 text-olive700">{{cards.subtitle}}</p>
         </div>
     </div>
 </template>

@@ -65,7 +65,7 @@
             </div>
 
             <button type="submit" @submit="router.visit('/dashboard')"
-                class="w-full py-3 px-4 bg-oliveKanvu hover:bg-emerald-800 text-white font-semibold rounded-xl text-base transition-colors shadow-sm">
+                class="w-full py-3 px-4 bg-olive700 hover:bg-emerald-800 text-white font-semibold rounded-xl text-base transition-colors shadow-sm">
                 Iniciar sesión
             </button>
 

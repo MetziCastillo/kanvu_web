@@ -11,7 +11,7 @@
                 <p class="font-semibold text-stone900">Estado de cuentas</p>
                 <p class="text-sm mt-1 text-stone500">Resumen operativo, sin información clínica.</p>
             </div>
-            <button class="text-sm font-semibold text-oliveKanvu">Ver usuarios</button>
+            <button class="text-sm font-semibold text-olive700">Ver usuarios</button>
         </div>
         <div class="p-6">
             <CardUsers />
