@@ -1,8 +1,9 @@
 <script setup>
     import { computed, ref } from 'vue';
-    import { usePage, Link } from '@inertiajs/vue3';
+    import { usePage, Link, router } from '@inertiajs/vue3';
     import AppIcon from '../components/AppIcon.vue';
     import AvatarInitials from '../components/Avatar_initials.vue';
+    import Breadcrumb from '../components/dashboard/Breadcrumbs.vue';
 
     const page = usePage();
     const usuario = computed(() => page.props.auth.user);
@@ -12,6 +13,10 @@
     const nomina = computed(() => usuario.value?.nomina);
 
     const openMenu = ref(false);
+
+    const handleLogout = () => {
+        router.post('/logout');
+    };
 
 
     const isActive = (href) => {
@@ -49,7 +54,6 @@
 
         const currentRole = Number(rolId.value);
 
-        // Filtramos los items que incluyan el rol actual
         return allItems.filter(item => item.roles.includes(currentRole));
     });
 
@@ -57,6 +61,28 @@
     const fullName = computed(() =>
         `${usuario.value?.first_name ?? ''} ${usuario.value?.last_name ?? ''}`.trim()
     );
+
+
+    // ... tus imports
+
+    const breadcrumbItems = computed(() => {
+        const path = page.url;
+
+        if (path === '/dashboard' || path.startsWith('/dashboard/')) {
+            return [];
+        }
+
+        const routeNames = {
+            '/user_management/Dashboard_um': 'Gestión de usuarios',
+        };
+
+        const currentName = routeNames[path] ?? path.replace('/', '');
+
+        return [
+            { label: 'Inicio', href: '/dashboard' },
+            { label: currentName }
+        ];
+    });
 
 </script>
 <template>
@@ -102,18 +128,14 @@
         </div>
     </header>
 
-
-    <!-- para moviles -->
     <!-- para moviles -->
     <Transition enter-active-class="transition duration-300 ease-out" enter-from-class="opacity-0"
         enter-to-class="opacity-100" leave-active-class="transition duration-200 ease-in" leave-from-class="opacity-100"
         leave-to-class="opacity-0">
 
         <div v-if="openMenu" class="fixed inset-0 z-40 flex justify-end top-[61px]">
-            <!-- Fondo oscuro -->
             <div class="absolute inset-0 bg-black/35" @click.self="openMenu = false"></div>
 
-            <!-- Panel blanco -->
             <Transition enter-active-class="transition duration-300 ease-out" enter-from-class="translate-x-full"
                 enter-to-class="translate-x-0" leave-active-class="transition duration-200 ease-in"
                 leave-from-class="translate-x-0" leave-to-class="translate-x-full">
@@ -140,8 +162,19 @@
                         </div>
                         </Link>
                     </nav>
+
+                    <div class="p-4 border-t text-stone100">
+                        <button @click="handleLogout"
+                            class="flex items-center gap-4 w-full px-4 py-3.5 rounded-xl hover:bg-red-50 transition-colors text-[#9b3525]">
+                            <AppIcon name="logout" size="20" color="#9b3525" />
+                            <span class="text-base font-medium">Cerrar sesión</span>
+                        </button>
+                    </div>
                 </div>
             </Transition>
         </div>
     </Transition>
+    <div v-if="breadcrumbItems.length > 0" class="sticky z-30 top-[61px]">
+        <Breadcrumb :items="breadcrumbItems" />
+    </div>
 </template>
