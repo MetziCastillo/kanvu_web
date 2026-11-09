@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Student;
 use App\Models\Employee;
 use App\Models\Student_group_assignment;
+use App\Models\Users_statu;
 use App\Mail\WelcomeMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -16,59 +17,72 @@ use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
+    private function bossConfig(int $roleId): ?array
+    {
+        return match ($roleId) {
+            2 => ['role_id' => 4, 'department_id' => 3],
+            3 => ['role_id' => 5, 'department_id' => 1],
+            default => null,
+        };
+    }
+
     public function store(Request $request)
     {
-        // 1. Validación condicional
+        $auth = $request->user();
+        $boss = $this->bossConfig((int) $auth->id_rol);
+
+        if ($boss) {
+            $request->merge([
+                'role_id'       => $boss['role_id'],
+                'department_id' => $boss['department_id'],
+            ]);
+        }
+
         $validated = $request->validate([
             'name'      => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email'     => 'required|email|max:255|unique:users,email',
             'role_id'   => 'required|integer|exists:roles,id',
 
-            // Estudiante (rol 6) - El group_id que envía el front es el id de school_groups
-            'matricula'  => 'required_if:role_id,6|string|max:10',
-            'career_id'  => 'required_if:role_id,6|integer|exists:careers,id',
-            'group_id'   => 'required_if:role_id,6|integer|exists:school_groups,id',
+            'matricula' => 'required_if:role_id,6|string|max:10',
+            'career_id' => 'required_if:role_id,6|integer|exists:careers,id',
+            'group_id'  => 'required_if:role_id,6|integer|exists:school_groups,id',
 
-            // Staff (roles 1,2,3,4,5)
             'nomina'        => 'required_unless:role_id,6,1|string|max:20',
             'department_id' => 'nullable|integer|exists:departments,id',
         ]);
 
+        if ($boss && !in_array((int) $validated['role_id'], [4, 5], true)) {
+            abort(403, 'No tienes permiso para crear este tipo de usuario.');
+        }
+
         $plainPassword = Str::password(12);
 
-        // 2. Usamos una transacción para que si falla algo, no se creen usuarios a medias
         $user = DB::transaction(function () use ($validated, $plainPassword) {
-
-            // Creamos el User base
             $user = User::create([
                 'first_name' => $validated['name'],
                 'last_name'  => $validated['last_name'],
                 'email'      => $validated['email'],
                 'id_rol'     => $validated['role_id'],
-                'status_id' => 1,
+                'status_id'  => 1,
                 'password'   => Hash::make($plainPassword),
                 'enable'     => true,
             ]);
 
-            // Dependiendo del rol, creamos su perfil
             if ((int) $validated['role_id'] === 6) {
-
-                // A) Creamos el estudiante
                 $student = Student::create([
-                    'user_id'   => $user->id,
-                    'matricula' => $validated['matricula'],
-                    'birthday' => '2000-01-01',
-                    'number_phone' => '0000000000',
+                    'user_id'                => $user->id,
+                    'matricula'              => $validated['matricula'],
+                    'birthday'               => '2000-01-01',
+                    'number_phone'           => '0000000000',
                     'number_phone_emergency' => '0000000000',
                 ]);
 
-                // B) Creamos la asignación del grupo (tu tabla pivote)
                 Student_group_assignment::create([
                     'student_id'      => $student->id,
-                    'school_group_id' => $validated['group_id'], // El id del frontend
-                    'start_date'      => now(), // Fecha de hoy como inicio
-                    'end_date'        => null,  // Sin fecha de fin
+                    'school_group_id' => $validated['group_id'],
+                    'start_date'      => now(),
+                    'end_date'        => null,
                 ]);
             } else {
                 if ((int) $validated['role_id'] !== 1) {
@@ -92,7 +106,51 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
-        // 1. Validación condicional (misma lógica que store, ignorando el propio user en unique)
+        $auth = $request->user();
+        $boss = $this->bossConfig((int) $auth->id_rol);
+
+        // 🔒 Un jefe solo puede editar a los roles que él crea
+        if ($boss && !in_array((int) $user->id_rol, [4, 5], true)) {
+            abort(403, 'No tienes permiso para editar este usuario.');
+        }
+
+        if ($boss) {
+            $validated = $request->validate([
+                'name'      => 'required|string|max:255',
+                'last_name' => 'required|string|max:255',
+                'email'     => [
+                    'required',
+                    'email',
+                    'max:255',
+                    Rule::unique('users', 'email')->ignore($user->id),
+                ],
+                'nomina'    => 'required|string|max:20',
+            ]);
+
+            DB::transaction(function () use ($validated, $user, $boss) {
+                $user->update([
+                    'first_name' => $validated['name'],
+                    'last_name'  => $validated['last_name'],
+                    'email'      => $validated['email'],
+                ]);
+
+                $employee = Employee::where('user_id', $user->id)->first();
+                if ($employee) {
+                    $employee->update(['nomina' => $validated['nomina']]);
+                } else {
+                    Employee::create([
+                        'user_id'       => $user->id,
+                        'nomina'        => $validated['nomina'],
+                        'department_id' => $boss['department_id'],
+                    ]);
+                }
+            });
+
+            return response()->json([
+                'user' => $user->fresh(['role']),
+            ], 200);
+        }
+
         $validated = $request->validate([
             'name'      => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -104,18 +162,15 @@ class UserController extends Controller
             ],
             'role_id'   => 'required|integer|exists:roles,id',
 
-            // Estudiante (rol 6)
             'matricula' => 'required_if:role_id,6|string|max:10',
             'career_id' => 'required_if:role_id,6|integer|exists:careers,id',
             'group_id'  => 'required_if:role_id,6|integer|exists:school_groups,id',
 
-            // Staff (roles 2,3,4,5)
             'nomina'        => 'required_unless:role_id,6,1|string|max:20',
             'department_id' => 'nullable|integer|exists:departments,id',
         ]);
 
         DB::transaction(function () use ($validated, $user) {
-            // 2. Actualizar datos base del usuario
             $user->update([
                 'first_name' => $validated['name'],
                 'last_name'  => $validated['last_name'],
@@ -125,10 +180,7 @@ class UserController extends Controller
 
             $newRole = (int) $validated['role_id'];
 
-            // 3. Sincronizar perfiles según el nuevo rol
             if ($newRole === 6) {
-                // --- Estudiante ---
-                // Si tenía perfil de empleado, lo eliminamos
                 Employee::where('user_id', $user->id)->delete();
 
                 $student = Student::firstOrCreate(
@@ -144,7 +196,6 @@ class UserController extends Controller
                     $student->update(['matricula' => $validated['matricula']]);
                 }
 
-                // Cerrar asignaciones previas y crear la nueva
                 Student_group_assignment::where('student_id', $student->id)
                     ->whereNull('end_date')
                     ->update(['end_date' => now()]);
@@ -156,8 +207,6 @@ class UserController extends Controller
                     'end_date'        => null,
                 ]);
             } else {
-                // --- Staff / Admin ---
-                // Si tenía perfil de estudiante, lo eliminamos
                 $student = Student::where('user_id', $user->id)->first();
                 if ($student) {
                     Student_group_assignment::where('student_id', $student->id)->delete();
@@ -165,7 +214,6 @@ class UserController extends Controller
                 }
 
                 if ($newRole !== 1) {
-                    // Roles 2,3,4,5 → empleado con nómina y departamento
                     Employee::updateOrCreate(
                         ['user_id' => $user->id],
                         [
@@ -174,7 +222,6 @@ class UserController extends Controller
                         ]
                     );
                 } else {
-                    // Rol 1 (admin) → solo en users, sin empleado
                     Employee::where('user_id', $user->id)->delete();
                 }
             }
@@ -183,5 +230,57 @@ class UserController extends Controller
         return response()->json([
             'user' => $user->fresh(['role']),
         ], 200);
+    }
+
+    public function updateStatus(Request $request, User $user)
+    {
+        $auth = $request->user();
+        $rolAuth = (int) $auth->id_rol;
+
+        if (!in_array($rolAuth, [1, 2, 3], true)) {
+            abort(403, 'No tienes permiso para cambiar el estado de usuarios.');
+        }
+
+        $validated = $request->validate([
+            'status_name' => ['required', Rule::in(['Activa', 'Suspendida', 'Baja'])],
+        ]);
+
+        $boss = $this->bossConfig($rolAuth);
+        if ($boss && !in_array((int) $user->id_rol, [4, 5], true)) {
+            abort(403, 'No tienes permiso para gestionar este usuario.');
+        }
+
+        if ($user->status?->name === 'Baja') {
+            return back()->withErrors([
+                'status' => 'El usuario ya está dado de baja.',
+            ]);
+        }
+
+        if ((int) $user->id_rol === 1 && $validated['status_name'] !== 'Activa') {
+            return back()->withErrors([
+                'status' => 'No puedes suspender ni dar de baja a un administrador.',
+            ]);
+        }
+
+        if ($auth->id === $user->id && $validated['status_name'] !== 'Activa') {
+            return back()->withErrors([
+                'status' => 'No puedes cambiar tu propio estado.',
+            ]);
+        }
+
+        $status = Users_statu::where('name', $validated['status_name'])->first();
+
+        if (!$status) {
+            return back()->withErrors([
+                'status' => "El estado '{$validated['status_name']}' no existe.",
+            ]);
+        }
+
+        $user->update([
+            'status_id' => $status->id,
+            'enable'    => $validated['status_name'] === 'Activa',
+        ]);
+
+        return back();
     }
 }

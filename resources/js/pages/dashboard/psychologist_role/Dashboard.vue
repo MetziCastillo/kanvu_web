@@ -20,17 +20,17 @@
             <Container1 />
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="lg:col-span-2 flex flex-col gap-5">
-                <Container2 />
-                <NextAppoiments />
+                    <Container2 />
+                    <NextAppoiments />
+                </div>
+                <div class="flex flex-col gap-5">
+                    <QuickAccess />
+                    <CardNextSession />
+                    <CardNote />
+                </div>
             </div>
-            <div class="flex flex-col gap-5">
-                <QuickAccess />
-                <CardNextSession />
-                <CardNote />
-            </div>
-    </div>
 
 
-    </main>
+        </main>
     </div>
 </template>
