@@ -166,11 +166,17 @@
             :stroke="color" />
     </svg>
 
-    <svg v-if="name === 'shield' " xmlns="http://www.w3.org/2000/svg" :width="size" :height="size" viewBox="0 0 13 19"
+    <svg v-if="name === 'chevronLeft'" xmlns="http://www.w3.org/2000/svg" :width="size" :height="size"
+        viewBox="0 0 18 18" fill="none">
+        <path d="M11.25 13.5L6.75 9L11.25 4.5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+            :stroke="color" />
+    </svg>
+
+    <svg v-if="name === 'shield'" xmlns="http://www.w3.org/2000/svg" :width="size" :height="size" viewBox="0 0 16 16"
         fill="none">
         <path
-            d="M6.28125 14.7344C6.28125 14.7344 10.4688 12.6406 10.4688 9.5V5.83594L6.28125 4.26562L2.09375 5.83594V9.5C2.09375 12.6406 6.28125 14.7344 6.28125 14.7344Z"
-            stroke-width="0.916016" stroke-linecap="round" stroke-linejoin="round" :stroke="color" />
+            d="M7.99996 14.6667C7.99996 14.6667 13.3333 12 13.3333 8.00004V3.33337L7.99996 1.33337L2.66663 3.33337V8.00004C2.66663 12 7.99996 14.6667 7.99996 14.6667Z"
+            stroke-width="1.16667" stroke-linecap="round" stroke-linejoin="round" :stroke="color" />
     </svg>
 
     <svg v-if="name === 'lightbulb'" xmlns="http://www.w3.org/2000/svg" :width="size" :height="size" viewBox="0 0 11 18"
@@ -249,5 +255,12 @@
         <path d="M13.3335 14.1667L17.5002 10L13.3335 5.83334" stroke-width="1.45833" stroke-linecap="round"
             stroke-linejoin="round" :stroke="color" />
         <path d="M17.5 10H7.5" stroke-width="1.45833" stroke-linecap="round" stroke-linejoin="round" :stroke="color" />
+    </svg>
+
+    <svg v-if="name === 'messageCircle'" xmlns="http://www.w3.org/2000/svg" :width="size" :height="size"
+        viewBox="0 0 16 16" fill="none">
+        <path
+            d="M14 10C14 10.3536 13.8595 10.6928 13.6095 10.9428C13.3594 11.1929 13.0203 11.3333 12.6667 11.3333H4.66667L2 14V3.33333C2 2.97971 2.14048 2.64057 2.39052 2.39052C2.64057 2.14048 2.97971 2 3.33333 2H12.6667C13.0203 2 13.3594 2.14048 13.6095 2.39052C13.8595 2.64057 14 2.97971 14 3.33333V10Z"
+            stroke-width="1.16667" stroke-linecap="round" stroke-linejoin="round" :stroke="color" />
     </svg>
 </template>

@@ -19,6 +19,23 @@
 
     const isEdit = computed(() => !!props.editingUser);
 
+    const isAdmin = computed(() => rolId.value === 1);
+    const isBoss = computed(() => rolId.value === 2 || rolId.value === 3);
+
+    const canEditNomina = computed(() => isAdmin.value || isBoss.value);
+
+    const forcedRoleId = computed(() => {
+        if (rolId.value === 2) return 4;
+        if (rolId.value === 3) return 5;
+        return null;
+    });
+
+    const forcedDepartmentId = computed(() => {
+        if (rolId.value === 2) return 2;
+        if (rolId.value === 3) return 1;
+        return null;
+    });
+
     const text_name = ref('');
     const text_lastName = ref('');
     const text_matricula = ref('');
@@ -71,6 +88,23 @@
     const defaultAdvise = 'Selecciona un rol para ver los detalles de la cuenta.';
 
     const roleInfo = computed(() => {
+        if (isBoss.value && !isEdit.value) {
+            const roleName = titleRoles[forcedRoleId.value] ?? '';
+            const deptName = forcedDepartmentId.value === 1 ? 'Psicología' : 'Enfermería';
+            return {
+                advise: `Se creará un usuario con rol ${roleName} en el departamento de ${deptName} automáticamente.`
+            };
+        }
+        if (isBoss.value && isEdit.value) {
+            return {
+                advise: 'Como jefe de departamento puedes actualizar los datos y la nómina del empleado. El rol y el departamento no se modifican.'
+            };
+        }
+        if (isAdmin.value && isEdit.value) {
+            return {
+                advise: 'Como administrador puedes modificar todos los datos del usuario, incluida la nómina, el rol y el departamento.'
+            };
+        }
         const id = Number(selectedRole.value);
         if (!id) return { advise: defaultAdvise };
         return textsAdmin[id] ?? textBoss[id] ?? { advise: defaultAdvise };
@@ -151,8 +185,23 @@
         }
     };
 
+    const applyForcedDefaults = () => {
+        if (isBoss.value && !isEdit.value) {
+            selectedRole.value = forcedRoleId.value;
+            selectedDepartment.value = forcedDepartmentId.value;
+        }
+    };
+
     onMounted(() => {
-        if (props.editingUser) hydrateForm(props.editingUser);
+        if (props.editingUser) {
+            hydrateForm(props.editingUser);
+        } else {
+            applyForcedDefaults();
+        }
+    });
+
+    watch(rolId, () => {
+        if (!props.editingUser) applyForcedDefaults();
     });
 
     watch(() => props.editingUser, (u) => {
@@ -163,6 +212,17 @@
         if (!text_name.value.trim()) return false;
         if (!text_lastName.value.trim()) return false;
         if (!text_email.value.trim()) return false;
+
+        if (isBoss.value && !isEdit.value) {
+            if (!text_nomina.value.trim()) return false;
+            return true;
+        }
+
+        if (isBoss.value && isEdit.value) {
+            if (!text_nomina.value.trim()) return false;
+            return true;
+        }
+
         if (!selectedRole.value) return false;
 
         const roleNum = Number(selectedRole.value);
@@ -186,7 +246,9 @@
         saving.value = true;
         errors.value = {};
 
-        const roleNum = Number(selectedRole.value);
+        const roleNum = isBoss.value && !isEdit.value
+            ? forcedRoleId.value
+            : Number(selectedRole.value);
 
         const payload = {
             name: text_name.value.trim(),
@@ -195,7 +257,12 @@
             role_id: roleNum,
         };
 
-        if (roleNum === 6) {
+        if (isBoss.value && !isEdit.value) {
+            payload.nomina = text_nomina.value.trim();
+            payload.department_id = forcedDepartmentId.value;
+        } else if (isBoss.value && isEdit.value) {
+            payload.nomina = text_nomina.value.trim();
+        } else if (roleNum === 6) {
             payload.matricula = text_matricula.value.trim();
             payload.career_id = Number(selectedCareer.value);
             payload.group_id = Number(selectedGroup.value);
@@ -260,6 +327,8 @@
         selectedDepartment.value = '';
         groups.value = [];
         errors.value = {};
+
+        applyForcedDefaults();
     };
 </script>
 
@@ -295,7 +364,7 @@
                 <p class="text-xs leading-relaxed text-olive700">{{ roleInfo.advise }}</p>
             </div>
 
-            <div v-if="options.SelectRol" class="flex flex-col gap-1.5">
+            <div v-if="!isBoss && options.SelectRol" class="flex flex-col gap-1.5">
                 <label class="text-xs font-semibold uppercase tracking-wider text-stone500">Rol</label>
                 <select v-model="selectedRole" name="role" id="role"
                     class="w-full rounded-xl border bg-white text-sm outline-none py-3 px-4 border-stone300 text-stone900">
@@ -309,6 +378,7 @@
 
             <InputLabel v-if="Number(selectedRole) === 6 && options.createMatricula" title="Matrícula" label="matricula"
                 placeholder="00000" type="text" v-model="text_matricula" />
+
             <InputLabel v-if="Number(selectedRole) !== 6 && Number(selectedRole) !== 1 && selectedRole !== ''"
                 title="Nómina" label="nomina" placeholder="00000" type="text" v-model="text_nomina" />
 
@@ -325,7 +395,7 @@
             </div>
 
             <div v-if="Number(selectedRole) === 6 && selectedCareer" class="flex flex-col gap-1.5">
-                <label class="text-xs font-semibold uppercase tracking-wider text-stone500">Grupo</label>
+                <label class="text-xs font-semibold uppercase tracking-wider text-stone500">Grado y grupo</label>
                 <select v-model="selectedGroup" name="group_id" :disabled="loadingGroups"
                     class="w-full rounded-xl border bg-white text-sm outline-none py-3 px-4 border-stone300 text-stone900 disabled:opacity-50">
                     <option value="" class="text-stone300" disabled>
@@ -338,7 +408,7 @@
                 <p v-if="errors.group_id" class="text-xs text-red-600">{{ errors.group_id[0] }}</p>
             </div>
 
-            <div v-if="Number(selectedRole) !== 6 && Number(selectedRole) !== 1 && selectedRole !== '' && options.SelectDepartment"
+            <div v-if="!isBoss && Number(selectedRole) !== 6 && Number(selectedRole) !== 1 && selectedRole !== '' && options.SelectDepartment"
                 class="flex flex-col gap-1.5">
                 <label class="text-xs font-semibold uppercase tracking-wider text-stone500">Departamento</label>
                 <select v-model="selectedDepartment" name="department_id"
@@ -358,6 +428,9 @@
             </div>
             <div v-if="errors.email" class="md:col-span-2 rounded-xl p-3 bg-red-50 border border-red-200">
                 <p class="text-xs text-red-700">{{ errors.email[0] }}</p>
+            </div>
+            <div v-if="errors.nomina" class="md:col-span-2 rounded-xl p-3 bg-red-50 border border-red-200">
+                <p class="text-xs text-red-700">{{ errors.nomina[0] }}</p>
             </div>
 
         </div>

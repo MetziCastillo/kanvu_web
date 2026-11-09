@@ -9,12 +9,17 @@ use App\Models\Department;
 use App\Models\School_group;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use App\Support\Roles;
 
 
 class UserManagementController extends Controller
 {
     public function index()
     {
+
+        $roleId = (int) Auth::user()->role?->id;
+
         $roles = Role::query()
             ->select('id', 'name')
             ->get();
@@ -34,7 +39,7 @@ class UserManagementController extends Controller
                 'roles' => $roles,
                 'careers' => $careers,
                 'department' => $department,
-                'allUsers' => $this->AllUsers(),
+                'allUsers' => $this->AllUsers($roleId),
             ]
         );
     }
@@ -60,13 +65,13 @@ class UserManagementController extends Controller
     }
 
 
-    public function AllUsers()
+    public function AllUsers(int $roleId)
     {
         $latestSga = DB::table('student_group_assignments as sga2')
             ->select('sga2.student_id', DB::raw('MAX(sga2.id) as last_id'))
             ->groupBy('sga2.student_id');
 
-        $usersList = DB::table('users as us')
+        $query = DB::table('users as us')
             ->leftJoin('roles as r', 'r.id', '=', 'us.id_rol')
             ->leftJoin('users_status as uss', 'uss.id', '=', 'us.status_id')
             ->leftJoin('students as sd', 'sd.user_id', '=', 'us.id')
@@ -90,21 +95,34 @@ class UserManagementController extends Controller
                 'ep.nomina',
                 'us.enable',
                 'r.name as rol_name',
-
-                'sd.id as id_student',
+                'us.id as student_id', 
                 'sc.id as group_id',
-                'sc.career_id',  
+                'sc.career_id',
                 'c.name as career_name',
                 'gd.name as grade_name',
-                'g.name as group_name', 
-
+                'g.name as group_name',
                 'ep.id as employee_id',
-                'ep.department_id',        
-                'dep.name as department_name' 
-            )
-            ->orderBy('us.id', 'desc')
-            ->get();
+                'ep.department_id',
+                'dep.name as department_name'
+            );
 
-        return $usersList;
+        switch ($roleId) {
+            case Roles::ADMIN:
+                break;
+
+            case Roles::MEDICAL_DEPARTMENT:
+                $query->where('us.id_rol', Roles::NURSE);
+                break;
+
+            case Roles::PSYCHOLOGY_DEPARTMENT:
+                $query->where('us.id_rol', Roles::PSYCHOLOGIST);
+                break;
+
+            default:
+                $query->whereRaw('1 = 0');
+                break;
+        }
+
+        return $query->orderBy('us.id', 'desc')->get();
     }
 }

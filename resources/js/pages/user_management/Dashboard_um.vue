@@ -38,7 +38,6 @@
 
     const refreshUsers = (isEdit = false) => {
         isRefreshing.value = true;
-
         showForm.value = false;
 
         router.reload({
@@ -53,11 +52,46 @@
     const showToast = (msg) => {
         toastMessage.value = msg;
         if (toastTimeout) clearTimeout(toastTimeout);
-
-
         toastTimeout = setTimeout(() => {
             toastMessage.value = '';
         }, 3000);
+    };
+
+    const processingUserId = ref(null);
+
+    const handleUpdateStatus = (userId, newStatus) => {
+        if (processingUserId.value) return;
+
+        // Confirmación para "Baja" (acción destructiva)
+        if (newStatus === 'Baja') {
+            const user = allUsers.value.find(u => u.user_id === userId);
+            const nombre = user ? `${user.name} ${user.last_name}` : 'este usuario';
+            if (!confirm(`¿Dar de baja a ${nombre}? Esta acción cambiará su estado a "Baja".`)) {
+                return;
+            }
+        }
+
+        // Lock inmediato
+        processingUserId.value = userId;
+
+        router.patch(`/users/${userId}/status`, {
+            status_name: newStatus,
+        }, {
+            preserveScroll: true,
+            only: ['allUsers'],
+            onSuccess: () => {
+                const mensajes = {
+                    Baja: 'Usuario dado de baja',
+                    Suspendida: 'Usuario suspendido',
+                    Activa: 'Usuario reactivado',
+                };
+                showToast(mensajes[newStatus] ?? 'Estado actualizado');
+            },
+            onError: (errors) => {
+                showToast(errors.status ?? 'No se pudo actualizar el estado');
+            },
+            onFinish: () => { processingUserId.value = null; },
+        });
     };
 </script>
 
@@ -70,7 +104,6 @@
 
             <div v-if="showForm" class="fixed inset-0 z-[100] flex items-center justify-center p-4"
                 style="background-color: rgba(28,28,26,0.5);">
-
                 <UserCreate @create-user="closeForm" @user-created="refreshUsers(false)"
                     @user-updated="refreshUsers(true)" :roles="roles" :careers="careers" :departments="departments"
                     :editing-user="editingUser" />
@@ -81,7 +114,6 @@
                     class="absolute inset-0 z-10 bg-white/60 backdrop-blur-[1px] flex items-center justify-center rounded-2xl transition-opacity">
                     <div
                         class="flex flex-col items-center gap-3 bg-white px-6 py-4 rounded-xl shadow-lg border border-stone-100">
-
                         <svg class="size-6 text-olive700 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
@@ -90,12 +122,12 @@
                                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
                             </path>
                         </svg>
-
                         <span class="text-sm font-semibold text-olive700">Actualizando tabla...</span>
                     </div>
                 </div>
 
-                <CardUserManagement :allUsers="allUsers" @openEdit="openEdit" @edit="openEdit" />
+                <CardUserManagement :all-users="allUsers" :processing-user-id="processingUserId" @edit="openEdit"
+                    @update-status="handleUpdateStatus" />
             </div>
         </main>
 

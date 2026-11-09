@@ -2,9 +2,7 @@
     import { computed, ref } from 'vue';
     import { usePage } from '@inertiajs/vue3';
 
-
     import InputLabel from '../../components/Input_labels.vue';
-    import AppIcon from '../../components/AppIcon.vue';
     import AvatarInitials from '../../components/Avatar_initials.vue';
     import AdminStatus from './Admin_status.vue';
 
@@ -16,6 +14,7 @@
 
     const props = defineProps({
         allUsers: { type: Array, required: true },
+        processingUserId: { type: [Number, String], default: null },
     });
 
     const search_value = ref('');
@@ -25,13 +24,13 @@
         { title: 'Todas' },
         { title: 'Activa' },
         { title: 'Baja' }
-    ]
+    ];
 
     const button = {
         1: [{ title: 'Todas' }, { title: 'Activa' }, { title: 'Suspendida' }, { title: 'Baja' }],
         2: opcionesActivaBaja,
         3: opcionesActivaBaja
-    }
+    };
 
     const tableTitles = [
         { title: 'Usuario' },
@@ -39,7 +38,7 @@
         { title: 'Asignación' },
         { title: 'Estado' },
         { title: 'Acciones' }
-    ]
+    ];
 
     const titleRoles = {
         1: 'Administrador',
@@ -78,12 +77,10 @@
 
     const handleToggleSuspension = (user) => {
         const newStatus = user.status_name === 'Suspendida' ? 'Activa' : 'Suspendida';
-        emit('updateStatus', user.user_id, newStatus);
+        emit('updateStatus', user.user_id, newStatus);   // ← user_id (como expone AllUsers)
     };
 
-    const handleDelete = (user) => emit('updateStatus', user.user_id, 'Baja');
-
-
+    const handleDelete = (user) => emit('updateStatus', user.user_id, 'Baja');  // ← user_id
 </script>
 
 <template>
@@ -106,7 +103,7 @@
                 <thead>
                     <tr class="bg-olive50">
                         <th v-for="t in tableTitles" :key="t.title"
-                            class="px-6 py-3.5 text-xs font-bold uppercase tracking-wider text-stone500">{{t.title}}
+                            class="px-6 py-3.5 text-xs font-bold uppercase tracking-wider text-stone500">{{ t.title }}
                         </th>
                     </tr>
                 </thead>
@@ -117,15 +114,21 @@
                             <div class="flex items-center gap-3">
                                 <AvatarInitials :name="`${user.name} ${user.last_name}`" />
                                 <div>
-                                    <p class="text-sm font-semibold text-stone900">{{user.name}} {{user.last_name}}</p>
-                                    <p class="text-xs mt-0.5 text-stone400">{{user.email}}</p>
+                                    <p class="text-sm font-semibold text-stone900">{{ user.name }} {{ user.last_name }}
+                                    </p>
+                                    <p class="text-xs mt-0.5 text-stone400">{{ user.email }}</p>
                                 </div>
                             </div>
                         </td>
                         <td class="px-6 py-4 text-sm font-medium text-stone700">{{ titleRoles[user.id_rol] ??
                             user.rol_name }}</td>
-                        <td class="px-6 py-4 text-sm text-stone500">{{ user.career_name ? `${user.career_name} ·
-                            ${user.grade_name}-${user.group_name}` : 'No aplica' }}</td>
+                        <td class="px-6 py-4 text-sm text-stone-500">
+                            {{
+                            user.career_name
+                            ? `${user.career_name} · ${user.grade_name}-${user.group_name}`
+                            : 'No aplica'
+                            }}
+                        </td>
                         <td class="px-6 py-4">
                             <AdminStatus :status="user.status_name" />
                         </td>
@@ -137,13 +140,15 @@
 
                                 <template v-if="user.status_name !== 'Baja'">
                                     <button type="button" @click="handleToggleSuspension(user)"
-                                        class="px-3 py-2 rounded-lg text-xs font-semibold cursor-pointer"
+                                        :disabled="processingUserId === user.user_id"
+                                        class="px-3 py-2 rounded-lg text-xs font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                         :class="btnStyles.suspend">
                                         {{ user.status_name === 'Suspendida' ? 'Reactivar' : 'Suspender' }}
                                     </button>
 
                                     <button type="button" @click="handleDelete(user)"
-                                        class="px-3 py-2 rounded-lg text-xs font-semibold cursor-pointer"
+                                        :disabled="processingUserId === user.user_id"
+                                        class="px-3 py-2 rounded-lg text-xs font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                         :class="btnStyles.delete">
                                         Dar de baja
                                     </button>
@@ -153,8 +158,9 @@
                     </tr>
                 </tbody>
             </table>
-            <p v-if="filteredUsers.length === 0" class="text-center py-12 text-sm text-stone500">No se encontraron
-                usuarios con ese criterio.</p>
+            <p v-if="filteredUsers.length === 0" class="text-center py-12 text-sm text-stone500">
+                No se encontraron usuarios con ese criterio.
+            </p>
         </div>
     </div>
 </template>

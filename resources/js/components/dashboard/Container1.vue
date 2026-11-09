@@ -8,6 +8,8 @@
     const page = usePage();
     const usuario = computed(() => page.props.auth.user);
     const rolId = computed(() => usuario.value?.role?.id);
+    const name = computed(() => usuario.value.first_name ?? 'usuario');
+    const last_name = computed(() => usuario.value.last_name ?? '');
 
     const text = {
         1: {
@@ -16,9 +18,27 @@
             button: 'Crear usuario',
             buttonRoute: '/user_management/Dashboard_um',
         },
+        2: {
+            title: 'Coordinación del Departamento Médico',
+            subtitle: `Buen día, ${name.value}. Este es el panorama general de tu equipo`,
+            button: 'Agregar médico',
+            buttonRoute: '/user_management/Dashboard_um',
+        },
+        3: {
+            title: 'Coordinación de Psicología',
+            subtitle: `Buen día, ${name.value}. Este es el panorama general de tu equipo`,
+            button: 'Agregar psicólogo',
+            buttonRoute: '/user_management/Dashboard_um',
+        },
+        4: {
+            title: 'Citas',
+            subtitle: 'Registro de consultas médicas de estudiantes.',
+            button: 'Registrar cita',
+            buttonRoute: '/appointments/Medical'
+        },
         5: {
             title: '',
-            button: 'Nueva Cita',
+            button: 'Nueva cita',
             buttonRoute: ''
         }
     }
@@ -31,11 +51,11 @@
     <div>
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
             <div v-if="rolId === 5">
-                <p class="text-base font-medium mb-1 text-stone-500">Hola!</p>
-                <h1 class="font-display text-2xl sm:text-3xl font-semibold text-stone-900">Sofía Ramírez</h1>
+                <p class="text-base font-medium mb-1 text-stone-500"> Hola! </p>
+                <h1 class="text-2xl sm:text-3xl font-semibold text-stone-900"> {{name}} {{last_name}} </h1>
             </div>
             <div v-else>
-                <h1 class="font-display text-2xl sm:text-3xl font-semibold text-stone-900">{{titles.title}}</h1>
+                <h1 class="text-2xl sm:text-3xl font-semibold text-stone-900">{{titles.title}}</h1>
                 <p class="text-base mt-1.5 text-stone-500">{{titles.subtitle}}</p>
             </div>
             <Link :href="titles.buttonRoute"
@@ -46,7 +66,8 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-8">
-            <Card />
+                <Card />
         </div>
+
     </div>
 </template>

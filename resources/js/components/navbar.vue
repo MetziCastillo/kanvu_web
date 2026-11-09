@@ -40,7 +40,7 @@
         const allItems = [
             { name: 'Inicio', icon: 'home', href: '/dashboard', roles: [1, 2, 3, 4, 5] },
             { name: 'Mis citas', icon: 'calendar', href: '#', roles: [5] },
-            { name: 'Citas', icon: 'calendar', href: '#', roles: [4] },
+            { name: 'Citas', icon: 'calendar', href: '/appointments/Medical', roles: [4] },
             { name: 'Mi Historial', icon: 'history', href: '#', roles: [5] },
             { name: 'Perfil', icon: 'user', href: '#', roles: [5, 4] },
             { name: 'Mi cuenta', icon: 'user', href: '#', roles: [1] },
@@ -71,9 +71,13 @@
         if (path === '/dashboard' || path.startsWith('/dashboard/')) {
             return [];
         }
+        if (path === '/appointments' || path.startsWith('/appointments')) {
+            return [];
+        }
 
         const routeNames = {
             '/user_management/Dashboard_um': 'Gestión de usuarios',
+            '/appointments/Medical': 'Registrar cita',
         };
 
         const currentName = routeNames[path] ?? path.replace('/', '');
