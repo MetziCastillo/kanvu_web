@@ -1,7 +1,9 @@
+
 <script setup>
     import Navbar from '../../../components/navbar.vue';
     import AppIcon from '../../../components/AppIcon.vue';
     import Container1 from '../../../components/dashboard/Container1.vue';
+    import TeamCard from '../../../components/dashboard/Teams_card.vue';
 </script>
 
 <template>
@@ -10,11 +12,7 @@
 
         <main class="flex-1 p-8">
             <Container1 />
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="lg:col-span-2 flex flex-col gap-5">
-                   
-                </div>
-            </div>
+                <TeamCard />
         </main>
     </div>
 
