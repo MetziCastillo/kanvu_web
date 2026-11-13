@@ -12,6 +12,7 @@
     const hasUsers = computed(() => informUsers.value.length > 0);
     const totalUsers = computed(() => informUsers.value.length);
 
+
     const activeUsers = computed(() =>
         informUsers.value.filter(u => Number(u.status_id) === 1).length
     );
@@ -25,16 +26,26 @@
     );
 
     // ── Jefe médico (rol 2) ───────────────────────────────
-    const informUsersM = computed(() => page.props.usersInformationBossM ?? []);
-    const activeUsersM = computed(() =>
-        informUsersM.value.filter(u => Number(u.status_id) === 1).length
+    const informUsersBoss = computed(() => page.props.employees ?? []);
+
+    const activeUsersB = computed(() =>
+        informUsersBoss.value.filter(u => Number(u.status_id) === 1).length
     );
 
-    // ── Jefe psicólogo (rol 3) ────────────────────────────
-    const informUsersP = computed(() => page.props.usersInformationBossP ?? []);
-    const activeUsersP = computed(() =>
-        informUsersP.value.filter(u => Number(u.status_id) === 1).length
+    const totalAppointmentsThisWeek = computed(() =>
+        informUsersBoss.value.reduce(
+            (sum, u) => sum + (Number(u.appointments_this_week) || 0),
+            0
+        )
     );
+
+    // const totalAppointments = computed(() => informUsersBoss.value.filter(u => Number()))
+
+    // // ── Jefe psicólogo (rol 3) ────────────────────────────
+    // const informUsersP = computed(() => page.props.usersInformationBossP ?? []);
+    // const activeUsersP = computed(() =>
+    //     informUsersP.value.filter(u => Number(u.status_id) === 1).length
+    // );
 
     // ── Enfermero (rol 4) ─────────────────────────────────
     const usersInformationNurse = computed(() => page.props.usersInformationN ?? []);
@@ -70,14 +81,14 @@
                 { number: studentUsers.value, icon: 'graduationCap', subtitle: 'Estudiantes Vigentes' },
             ],
             2: [
-                { number: activeUsersM.value, icon: 'users', subtitle: 'Personal Activo' },
-                { number: 105, icon: 'calendar', subtitle: 'Consultas de esta semana' },
+                { number: activeUsersB.value, icon: 'users', subtitle: 'Personal Activo' },
+                { number: totalAppointmentsThisWeek, icon: 'calendar', subtitle: 'Consultas de esta semana' },
                 { number: '95%', icon: 'check', subtitle: 'Asistencia promedio' },
                 { number: 11, icon: 'fileText', subtitle: 'Registros recientes' },
             ],
             3: [
-                { number: activeUsersP.value, icon: 'users', subtitle: 'Psicólogos activos' },
-                { number: 85, icon: 'calendar', subtitle: 'Citas esta semana' },
+                { number: activeUsersB.value, icon: 'users', subtitle: 'Psicólogos activos' },
+                { number: totalAppointmentsThisWeek, icon: 'calendar', subtitle: 'Citas esta semana' },
                 { number: '93%', icon: 'check', subtitle: 'Asistencia promedio' },
                 { number: 4, icon: 'fileText', subtitle: 'Sesiones grupales' },
             ],
