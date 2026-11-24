@@ -39,14 +39,6 @@
         )
     );
 
-    // const totalAppointments = computed(() => informUsersBoss.value.filter(u => Number()))
-
-    // // ── Jefe psicólogo (rol 3) ────────────────────────────
-    // const informUsersP = computed(() => page.props.usersInformationBossP ?? []);
-    // const activeUsersP = computed(() =>
-    //     informUsersP.value.filter(u => Number(u.status_id) === 1).length
-    // );
-
     // ── Enfermero (rol 4) ─────────────────────────────────
     const usersInformationNurse = computed(() => page.props.usersInformationN ?? []);
 
@@ -66,7 +58,35 @@
             a => a.consultation_date?.slice(0, 10) === today.value
         )
     )
+    // ── psicologo (rol_id = 5) ───────────────────────────────
+    const informUsersPsychology = computed(() => page.props.usersInformationP ?? []);
 
+    const appointmentTotals = computed(() => informUsersPsychology.value.length)
+
+    const appointmentAttendance = computed(() =>
+        informUsersPsychology.value.filter(
+            u => Number(u.status_id) === 4
+        ).length
+    )
+
+    const appointmentAttendancePercentage = computed(() => {
+        const total = informUsersPsychology.value.length
+
+        if (total === 0) return 0
+
+        return Math.round((appointmentAttendance.value / total) * 100)
+    })
+
+    const pendingSchedule = computed(() =>
+        informUsersPsychology.value.filter(u => Number(u.status_id) === 2).length
+    );
+
+    const NextAppoiments = computed(() =>
+        informUsersPsychology.value.filter(u =>
+            Number(u.status_id) === 1 &&
+            u.appointment_date === today.value
+        ).length
+    )
 
     // ── Cards por rol ─────────────────────────────────────
     const cards = computed(() => {
@@ -97,10 +117,10 @@
                 { number: appointmentsToday.value.length, icon: 'check', subtitle: 'Citas del día' }
             ],
             5: [
-                { number: 6, icon: 'calendar', subtitle: 'Citas totales' },
-                { number: 5, icon: 'check', subtitle: 'Asistencias' },
-                { number: 10, icon: 'pending', subtitle: 'Pendientes de agendar' },
-                { number: 2, icon: 'clock', subtitle: 'Próximas' },
+                { number: appointmentTotals.value, icon: 'calendar', subtitle: 'Citas totales' },
+                { number: `${appointmentAttendancePercentage.value}%`, icon: 'check', subtitle: 'Asistencias' },
+                { number: pendingSchedule.value, icon: 'pending', subtitle: 'Pendientes de agendar' },
+                { number: NextAppoiments.value, icon: 'clock', subtitle: 'Próximas citas de hoy' },
             ],
         }
 
