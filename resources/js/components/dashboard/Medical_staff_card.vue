@@ -96,7 +96,7 @@
 
             <div class="mt-4 rounded-xl px-3.5 py-3 flex items-center gap-2.5" :class="availabilityBg">
                 <AppIcon name="clock" size="16" :color="availabilityIconColor" />
-                <p class="text-xs flex-1 truncate" :class="availabilityText"
+                <p class="text-xs flex-1 truncate" :class="availabilityText">
                     {{ user.availability?.label ?? 'Sin disponibilidad' }}
                     <span v-if="user.availability?.next" class="opacity-80">
                         · {{ user.availability.nextLabel }} {{ user.availability.next }}
