@@ -1,6 +1,6 @@
 <script setup>
     import { computed } from 'vue';
-    import { usePage } from '@inertiajs/vue3';
+    import { usePage, Link } from '@inertiajs/vue3';
     import AppIcon from '../../components/AppIcon.vue';
 
     const page = usePage();
@@ -30,20 +30,20 @@
         ],
         5: [
             {
-                title: 'Solicitar nueva cita',
-                subtitle: '',
-                screen: '',
+                title: 'Registrar nueva cita',
+                subtitle: 'Asigna un paciente y horario',
+                screen: '/appointments/Medical',
                 icon: 'plus'
             },
             {
-                title: 'Ver historial',
-                subtitle: '',
+                title: 'Consultar historial',
+                subtitle: 'Revisa notas de sesiones anteriores',
                 screen: '',
                 icon: 'history'
             },
             {
-                title: 'Mi perfil',
-                subtitle: '',
+                title: 'Ver toda mi agenda',
+                subtitle: 'Próximas y anteriores',
                 screen: '',
                 icon: 'user',
             }
@@ -59,18 +59,17 @@
         <p class="font-semibold mb-4 text-stone900">Accesos Rápidos</p>
 
         <div class="flex flex-col gap-2">
-            <button v-for="ac in accesses" :key="ac.title" :value="screen"
+            <Link v-for="ac in accesses" :key="ac.title" :href="ac.screen"
                 class="flex items-center gap-3 p-3 rounded-xl text-left hover:bg-stone-50 transition-colors">
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-olive50"
-                :style="{backgroundColor: rolId === 1 ? 'var(--color-olive50)' : 'transparent'}">
-                    <AppIcon :name="ac.icon" :size="18" color="var(--color-olive700)" />
-                </div>
-                <div class="flex-1">
-                    <p class="text-sm font-semibold text-stone900">{{ac.title}}</p>
-                    <p class="text-xs mt-0.5 text-stone400">{{ac.subtitle}}</p>
-                </div>
-                <AppIcon name="chevronRight" :size="15" color="var(--color-stone300)" />
-            </button>
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-olive50">
+                <AppIcon :name="ac.icon" :size="18" color="var(--color-olive700)" />
+            </div>
+            <div class="flex-1">
+                <p class="text-sm font-semibold text-stone900">{{ ac.title }}</p>
+                <p class="text-xs mt-0.5 text-stone400">{{ ac.subtitle }}</p>
+            </div>
+            <AppIcon name="chevronRight" :size="15" color="var(--color-stone300)" />
+            </Link>
         </div>
     </div>
 </template>

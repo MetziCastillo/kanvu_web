@@ -109,7 +109,6 @@ class UserController extends Controller
         $auth = $request->user();
         $boss = $this->bossConfig((int) $auth->id_rol);
 
-        // 🔒 Un jefe solo puede editar a los roles que él crea
         if ($boss && !in_array((int) $user->id_rol, [4, 5], true)) {
             abort(403, 'No tienes permiso para editar este usuario.');
         }

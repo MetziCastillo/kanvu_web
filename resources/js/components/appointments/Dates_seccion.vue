@@ -31,7 +31,7 @@
         </div>
 
         <div v-else class="p-0 bg-white rounded-2xl border border-stone100">
-            <Link v-for="ct in appointments" :key="ct.id" :href="`/appointments/${ct.id}`"
+            <Link v-for="ct in appointments" :key="ct.id" :href="`/appointments/medical/${ct.id}`"
                 title="Ver detalles de consulta"
                 class="flex items-center gap-5 px-6 py-5 border-b last:border-b-0 hover:bg-stone-50 cursor-pointer transition-colors border-stone100 text-stone100">
 

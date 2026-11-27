@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Area;
 use Illuminate\Http\Request;
 use App\Models\Role;
 use App\Models\Career;
@@ -9,9 +10,13 @@ use App\Models\Department;
 use App\Models\School_group;
 use App\Models\MedicalAppointment;
 use App\Models\Employee;
+use App\Models\Modality;
+use App\Models\PsychologyAppointment;
 use App\Models\Student;
 use Inertia\Inertia;
+use App\Support\Roles;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 class MedicalManagementController extends Controller
@@ -21,11 +26,15 @@ class MedicalManagementController extends Controller
         $roles = Role::query()->select('id', 'name')->get();
         $careers = Career::query()->select('id', 'name')->where('enable', true)->get();
         $department = Department::query()->select('id', 'name')->get();
+        $area = Area::query()->select('id', 'name')->where('enable', true)->get();
+        $modality = Modality::query()->select('id', 'name')->where('enable', true)->get();
 
         return Inertia::render('appointments/Medical', [
             'roles' => $roles,
             'careers' => $careers,
             'department' => $department,
+            'area' => $area,
+            'modality' => $modality,
         ]);
     }
 
@@ -82,47 +91,131 @@ class MedicalManagementController extends Controller
 
     public function store(Request $request)
     {
+        $user = Auth::user();
+
+        $roleId = (int) $user->id_rol;
+
         $data = $request->validate([
-            'manual'            => 'boolean',
-            'student_id'        => 'required|integer|exists:users,id',
-            'career_id'         => 'required|integer|exists:careers,id',
-            'group_id'          => 'required|integer|exists:school_groups,id',
-            'appointment_date'  => 'required|date',
-            'start_time'        => 'required',
-            'end_time'          => 'required',
-            'discomfort'        => 'required|string',
-            'indications'       => 'nullable|string',
-            'observations'      => 'nullable|string',
+            'manual'           => 'boolean',
+            'student_id'       => 'required|integer|exists:users,id',
+            'career_id'        => 'required|integer|exists:careers,id',
+            'group_id'         => 'required|integer|exists:school_groups,id',
+            'appointment_date' => 'required|date',
+            'start_time'       => ['required', 'date_format:H:i'],
+            'end_time'         => ['required', 'date_format:H:i', 'after:start_time'],
+            'discomfort'       => 'required|string',
+            'indications'      => 'nullable|string',
+            'observations'     => 'nullable|string',
+        ], [
+            'end_time.after'         => 'La hora de término debe ser posterior a la hora de inicio.',
+            'end_time.date_format'   => 'La hora de término no tiene un formato válido (HH:MM).',
+            'start_time.date_format' => 'La hora de inicio no tiene un formato válido (HH:MM).',
         ]);
 
+        $selectedDate = Carbon::parse($data['appointment_date'])->startOfDay();
+        $today = Carbon::today();
 
-        $employeeId = Auth::id();
-
-        $studentId = $data['student_id'] ?? null;
-
-        if ($request->manual && !$studentId) {
-            return response()->json(['message' => 'El registro manual requiere crear un usuario primero.'], 422);
-            // (Aquí podrías implementar la creación del User + Student si lo deseas)
+        if ($selectedDate->lt($today)) {
+            return response()->json([
+                'errors' => [
+                    'appointment_date' => ['La fecha de la cita no puede ser anterior a hoy.'],
+                ],
+            ], 422);
         }
 
-        $appointment = MedicalAppointment::create([
-            'student_id'        => $studentId,
-            'employee_id'       => $employeeId,
-            'consultation_date' => $data['appointment_date'],
-            'time_start'        => $data['start_time'],
-            'time_end'          => $data['end_time'],
-            'reason'            => $data['discomfort'],
-            'instructions'      => $data['indications'] ?? null,
-            'notes'             => $data['observations'] ?? null,
-            'enable'            => true,
-        ]);
+        if (!in_array($roleId, [Roles::NURSE, Roles::PSYCHOLOGIST], true)) {
+            return response()->json([
+                'message' => 'No tienes permiso para crear citas.',
+            ], 403);
+        }
+
+        $employeeId = $user->id;
+        $studentId  = $data['student_id'];
+
+        if ($request->boolean('manual') && !$studentId) {
+            return response()->json(
+                ['message' => 'El registro manual requiere crear un usuario primero.'],
+                422
+            );
+        }
+
+        if ($roleId === Roles::PSYCHOLOGIST) {
+            $request->validate([
+                'area_id'     => 'required|integer|exists:areas,id',
+                'modality_id' => 'required|integer|exists:modalities,id',
+            ], [
+                'area_id.required'     => 'Debes seleccionar un área.',
+                'modality_id.required' => 'Debes seleccionar una modalidad.',
+            ]);
+        }
+
+        if ($this->slotIsTaken($roleId, $employeeId, $data['appointment_date'], $data['start_time'], $data['end_time'])) {
+            return response()->json([
+                'errors' => [
+                    'start_time' => ['Ya tienes una cita en ese horario.'],
+                ],
+            ], 422);
+        }
+
+        if ($roleId === Roles::NURSE) {
+            $appointment = MedicalAppointment::create([
+                'student_id'        => $studentId,
+                'employee_id'       => $employeeId,
+                'consultation_date' => $data['appointment_date'],
+                'time_start'        => $data['start_time'],
+                'time_end'          => $data['end_time'],
+                'reason'            => $data['discomfort'],
+                'instructions'      => $data['indications'] ?? null,
+                'notes'             => $data['observations'] ?? null,
+                'enable'            => true,
+            ]);
+        } else {
+            $appointment = PsychologyAppointment::create([
+                'student_id'       => $studentId,
+                'employee_id'      => $employeeId,
+                'area_id'          => (int) $request->input('area_id'),
+                'modality_id'      => (int) $request->input('modality_id'),
+                'status_id'        => 1,
+                'appointment_date' => $data['appointment_date'],
+                'time_start'       => $data['start_time'],
+                'time_end'         => $data['end_time'],
+                'reason'           => $data['discomfort'],
+                'instructions'     => $data['indications'] ?? null,
+                'notes'            => $data['observations'] ?? null,
+            ]);
+        }
 
         return response()->json(['appointment' => $appointment], 201);
     }
 
-    public function detailsAppointment(MedicalAppointment $appointment)
+    private function slotIsTaken(int $roleId, int $employeeId, string $date, string $start, string $end): bool
     {
-        $medicalAppointmentsDetails = DB::table('medical_appointments AS ma')
+        $model = $roleId === Roles::NURSE
+            ? MedicalAppointment::class
+            : PsychologyAppointment::class;
+
+        $dateColumn = $roleId === Roles::NURSE ? 'consultation_date' : 'appointment_date';
+
+        return $model::query()
+            ->where('employee_id', $employeeId)
+            ->where($dateColumn, $date)
+            ->where(function ($q) use ($start, $end) {
+                $q->where('time_start', '<', $end)
+                    ->where('time_end', '>', $start);
+            })
+            ->exists();
+    }
+
+    public function detailsAppointment($type, $appointmentId)
+    {
+        if (!in_array($type, ['medical', 'psychology'])) {
+            abort(404);
+        }
+
+        $table = $type === 'medical' ? 'medical_appointments' : 'psychology_appointments';
+        $dateField = $type === 'medical' ? 'consultation_date' : 'appointment_date';
+
+        $details = DB::table($table . ' AS ma')
             ->leftJoin('users AS u', 'u.id', '=', 'ma.student_id')
             ->leftJoin('students AS s', 's.user_id', '=', 'u.id')
             ->leftJoin('student_group_assignments AS sga', 'sga.student_id', '=', 's.id')
@@ -131,7 +224,7 @@ class MedicalManagementController extends Controller
             ->leftJoin('groups AS gs', 'gs.id', '=', 'sc.group_id')
             ->leftJoin('careers AS cr', 'cr.id', '=', 'sc.career_id')
             ->where('ma.enable', 1)
-            ->where('ma.id', $appointment->id)
+            ->where('ma.id', $appointmentId)
             ->select(
                 'ma.id',
                 'u.first_name',
@@ -140,19 +233,34 @@ class MedicalManagementController extends Controller
                 'cr.name AS career_name',
                 'gd.name AS grade_name',
                 'gs.name AS group_name',
-                'ma.consultation_date',
+                DB::raw("DATE_FORMAT(ma.{$dateField}, '%Y-%m-%d') AS consultation_date"),
                 DB::raw("DATE_FORMAT(ma.time_start, '%H:%i') AS time_start"),
                 DB::raw("DATE_FORMAT(ma.time_end, '%H:%i') AS time_end"),
                 'ma.reason',
                 'ma.notes',
                 'ma.instructions'
             )
-            ->orderBy('ma.id', 'DESC')
             ->first();
 
+        if (!$details) {
+            abort(404);
+        }
+
+        if ($type === 'psychology') {
+            $extra = DB::table('psychology_appointments AS pa')
+                ->leftJoin('modalities AS m', 'm.id', '=', 'pa.modality_id')
+                ->leftJoin('areas AS a', 'a.id', '=', 'pa.area_id')
+                ->leftJoin('statuses AS st', 'st.id', '=', 'pa.status_id')
+                ->where('pa.id', $appointmentId)
+                ->select('m.name AS modality_name', 'a.name AS area_name', 'pa.status_id', 'st.name AS status_name')
+                ->first();
+
+            $details = (object) array_merge((array) $details, (array) $extra);
+        }
 
         return Inertia::render('appointments/Details', [
-            'detailsAppointment' => $medicalAppointmentsDetails
+            'detailsAppointment' => $details,
+            'type' => $type
         ]);
     }
 }

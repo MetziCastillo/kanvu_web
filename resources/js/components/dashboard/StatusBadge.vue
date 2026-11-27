@@ -3,28 +3,24 @@
 
   const props = defineProps({
     name: {
-      type: String,
+      type: [String, Number],
       required: true,
     },
   });
 
   const statuses = {
-    coming: {
-      label: 'Próxima',
-      classes: 'bg-greenLight text-olive700',
-    },
-    completed: {
-      label: 'Completada',
-      classes: 'bg-stone-100 text-stone-700',
-    },
-    cancelled: {
-      label: 'Cancelada',
-      classes: 'bg-red-100 text-red-800',
-    },
+    '1': { label: 'Próxima', classes: 'bg-greenLight text-olive700' },
+    'Próxima': { label: 'Próxima', classes: 'bg-greenLight text-olive700' },
+
+    '2': { label: 'Completada', classes: 'bg-stone-100 text-stone-700' },
+    'Completada': { label: 'Completada', classes: 'bg-stone-100 text-stone700' },
+
+    '3': { label: 'Cancelada', classes: 'bg-red-100 text-red-800' },
+    'Cancelada': { label: 'Cancelada', classes: 'bg-red-100 text-red-800' },
   };
 
   const status = computed(() => {
-    return statuses[props.name] ?? statuses.coming;
+    return statuses[props.name] ?? statuses['1'];
   });
 </script>
 

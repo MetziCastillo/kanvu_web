@@ -20,13 +20,14 @@
 </script>
 
 <template>
-    <svg v-if="name === 'leaf'" xmlns="http://www.w3.org/2000/svg" :width="size" :height="size" viewBox="0 0 22 22"
+
+    <svg v-if="name === 'leaf'" xmlns="http://www.w3.org/2000/svg" :width="size" :height="size" viewBox="0 0 20 20"
         fill="none">
         <path
-            d="M15.5833 7.33331C7.33334 9.16665 5.40834 14.8225 3.50168 17.7283C3.37963 17.9039 3.32281 18.1166 3.34105 18.3297C3.35929 18.5427 3.45144 18.7427 3.60155 18.895C3.75166 19.0473 3.95029 19.1423 4.16306 19.1636C4.37583 19.1849 4.58935 19.1312 4.76668 19.0116C6.95751 17.4166 13.0533 14.6666 15.5833 7.33331Z"
-            stroke="color" stroke-width="strokeWidth" stroke-linecap="round" stroke-linejoin="round" />
-        <path d="M15.5833 7.33331C15.5833 7.33331 11.9167 15.5833 2.75 17.4166" :stroke="color" stroke-width="1.60417"
-            stroke-linecap="round" stroke-linejoin="round" />
+            d="M14.1667 6.66666C6.6667 8.33333 4.9167 13.475 3.18337 16.1167C3.07241 16.2763 3.02076 16.4697 3.03734 16.6634C3.05392 16.857 3.13769 17.0388 3.27416 17.1773C3.41062 17.3157 3.59119 17.4021 3.78462 17.4215C3.97805 17.4408 4.17216 17.392 4.33336 17.2833C6.32503 15.8333 11.8667 13.3333 14.1667 6.66666Z"
+            stroke-width="1.45833" stroke-linecap="round" stroke-linejoin="round" :stroke="color" />
+        <path d="M14.1667 6.66666C14.1667 6.66666 10.8333 14.1667 2.5 15.8333" stroke-width="1.45833"
+            stroke-linecap="round" stroke-linejoin="round" :stroke="color" />
     </svg>
 
     <svg v-if="name === 'Menu'" xmlns="http://www.w3.org/2000/svg" :width="size" :height="size" viewBox="0 0 22 22"
@@ -262,5 +263,30 @@
         <path
             d="M14 10C14 10.3536 13.8595 10.6928 13.6095 10.9428C13.3594 11.1929 13.0203 11.3333 12.6667 11.3333H4.66667L2 14V3.33333C2 2.97971 2.14048 2.64057 2.39052 2.39052C2.64057 2.14048 2.97971 2 3.33333 2H12.6667C13.0203 2 13.3594 2.14048 13.6095 2.39052C13.8595 2.64057 14 2.97971 14 3.33333V10Z"
             stroke-width="1.16667" stroke-linecap="round" stroke-linejoin="round" :stroke="color" />
+    </svg>
+
+
+
+    <svg v-if="name === 'mail'" xmlns="http://www.w3.org/2000/svg" :width="size" :height="size" viewBox="0 0 13 13"
+        fill="none">
+        <g clip-path="url(#clip0_266_184)">
+            <path
+                d="M2.16659 2.1665H10.8333C11.4316 2.1665 11.9166 2.65153 11.9166 3.24984V9.74984C11.9166 10.3481 11.4316 10.8332 10.8333 10.8332H2.16659C1.56828 10.8332 1.08325 10.3481 1.08325 9.74984V3.24984C1.08325 2.65153 1.56828 2.1665 2.16659 2.1665Z"
+                stroke-width="0.947917" stroke-linecap="round" stroke-linejoin="round" :stroke="color" />
+            <path d="M1.08325 3.7915L6.49992 7.58317L11.9166 3.7915" stroke-width="0.947917" stroke-linecap="round"
+                stroke-linejoin="round" :stroke="color" />
+        </g>
+        <defs>
+            <clipPath id="clip0_266_184">
+                <rect :width="size" :height="size" fill="white" />
+            </clipPath>
+        </defs>
+    </svg>
+
+
+    <svg v-if="name === 'x'" xmlns="http://www.w3.org/2000/svg" :width="size" :height="size" viewBox="0 0 16 16"
+        fill="none">
+        <path d="M12 4L4 12M4 4L12 12" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"
+            :stroke="color" />
     </svg>
 </template>
