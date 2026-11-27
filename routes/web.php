@@ -4,8 +4,10 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\BossDetailsController;
 use App\Http\Controllers\DashboardDataController;
 use App\Http\Controllers\MedicalManagementController;
+use App\Http\Controllers\PsychologyManagementController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserManagementController;
 use Illuminate\Http\Request;
@@ -76,10 +78,27 @@ Route::middleware('auth')->group(function () {
         ->name('appointments.medical.store');
 
     //Details medical appointments
-    Route::get('/appointments/{appointment}', [MedicalManagementController::class, 'detailsAppointment'])
+    Route::get('/appointments/{type}/{appointment}', [MedicalManagementController::class, 'detailsAppointment'])
         ->name('appointments.details');
 
+    // Detalle
+    Route::get('/boss/employees/{employee_id}/detail', [BossDetailsController::class, 'showEmployee'])
+        ->name('employee.details');
 
+    // Guardar carreras
+    Route::post('/boss/employees/{employee_id}/careers', [BossDetailsController::class, 'updateCareers'])
+        ->name('employee.careers');
+
+    // Guardar horario
+    Route::post('/boss/employees/{employee_id}/schedule', [BossDetailsController::class, 'updateSchedule'])
+        ->name('employee.schedule');
+
+    //appointments psychology
+    Route::put('/psychology/appointments/{id}/accept', [PsychologyManagementController::class, 'accept'])
+        ->name('psychology.appointments.accept');
+
+    Route::put('/psychology/appointments/{id}/reschedule', [PsychologyManagementController::class, 'reschedule'])
+        ->name('psychology.appointments.reschedule');
 
     Route::post('/logout', [AuthController::class, 'logout'])
         ->name('logout');

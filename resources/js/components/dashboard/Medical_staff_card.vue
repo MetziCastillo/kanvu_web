@@ -1,6 +1,6 @@
 <script setup>
     import { computed } from 'vue';
-
+    import { Link } from '@inertiajs/vue3';
     import Card from '@/components/Cards.vue';
     import AppIcon from '@/components/AppIcon.vue';
     import AvatarInitials from '@/components/Avatar_initials.vue';
@@ -23,15 +23,15 @@
     }));
 
     const topBarClasses = computed(() => ({
-        'bg-olive-500': isActiveStatus.value,
-        'bg-stone-300': !isActiveStatus.value,
+        'bg-olive500': isActiveStatus.value,
+        'bg-stone300': !isActiveStatus.value,
     }));
 
     const availabilityBg = computed(() => ({
         'bg-green-50': props.user.availability?.color === 'green',
         'bg-amber-50': props.user.availability?.color === 'amber',
         'bg-blue-50': props.user.availability?.color === 'blue',
-        'bg-stone-100': props.user.availability?.color === 'gray'
+        'bg-stone100': props.user.availability?.color === 'gray'
             || props.user.availability?.color === 'inactive'
             || !props.user.availability,
     }));
@@ -40,7 +40,7 @@
         'text-green-700': props.user.availability?.color === 'green',
         'text-amber-700': props.user.availability?.color === 'amber',
         'text-blue-700': props.user.availability?.color === 'blue',
-        'text-stone-500': props.user.availability?.color === 'gray'
+        'text-stone500': props.user.availability?.color === 'gray'
             || props.user.availability?.color === 'inactive'
             || !props.user.availability,
     }));
@@ -56,18 +56,16 @@
 </script>
 
 <template>
-    <Card class="overflow-hidden" :class="cardClasses" padding="p-0"
-        @click="console.log('id usuario: ' + user.employee_id)">
-
+    <Link :href="`/boss/employees/${user.employee_id}/detail`" class="block">
+    <Card class="overflow-hidden" :class="cardClasses" padding="p-0">
         <div class="h-1.5" :class="topBarClasses"></div>
-
         <div class="p-5">
             <div class="flex items-start gap-4">
                 <AvatarInitials :name="`${user.first_name} ${user.last_name}`" size="lg" />
                 <div class="flex-1 min-w-0">
                     <div class="flex items-start justify-between gap-2">
                         <div class="min-w-0">
-                            <p class="font-semibold text-base truncate text-stone-900">
+                            <p class="font-semibold text-base truncate text-stone900">
                                 {{ user.first_name }} {{ user.last_name }}
                             </p>
                         </div>
@@ -77,19 +75,19 @@
             </div>
 
             <div v-if="!isInactiveStatus"
-                class="mt-5 pt-4 border-t grid grid-cols-2 gap-3 border-stone-100 min-h-[72px]">
+                class="mt-5 pt-4 border-t grid grid-cols-2 gap-3 border-stone100 min-h-[72px]">
                 <div>
-                    <p class="text-2xl font-semibold text-stone-900">{{ user.total_appointments }}</p>
-                    <p class="text-xs text-stone-500">Consultas totales</p>
+                    <p class="text-2xl font-semibold text-stone900">{{ user.total_appointments }}</p>
+                    <p class="text-xs text-stone500">Consultas totales</p>
                 </div>
                 <div>
-                    <p class="text-2xl font-semibold text-olive-700">{{ user.appointments_today }}</p>
-                    <p class="text-xs text-stone-500">Consultas de hoy</p>
+                    <p class="text-2xl font-semibold text-olive700">{{ user.appointments_today }}</p>
+                    <p class="text-xs text-stone500">Consultas de hoy</p>
                 </div>
             </div>
 
-            <div v-else class="mt-5 pt-4 border-t border-stone-100 min-h-[72px] flex items-center">
-                <p class="text-xs text-stone-400">
+            <div v-else class="mt-5 pt-4 border-t border-stone100 min-h-[72px] flex items-center">
+                <p class="text-xs text-stone400">
                     Empleado {{ user.status_name?.toLowerCase() ?? 'inactivo' }} — sin estadísticas
                 </p>
             </div>
@@ -106,4 +104,5 @@
             </div>
         </div>
     </Card>
+    </Link>
 </template>

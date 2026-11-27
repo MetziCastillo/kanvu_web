@@ -5,23 +5,27 @@
     import AppIcon from '../../components/AppIcon.vue';
     import Navbar from '../../components/navbar.vue';
     import InputLabel from '../../components/Input_labels.vue';
+    import Card from '../../components/Cards.vue';
 
     const props = defineProps({
         roles: { type: Array, required: true },
         careers: { type: Array, required: true },
-        department: { type: Array, default: () => [] },
+        department: { type: Array, required: true },
+        modality: { type: Array, required: true },
+        area: { type: Array, required: true }
     });
 
     const page = usePage();
-
+    const usuario = computed(() => page.props.auth.user);
+    const rolId = computed(() => usuario.value?.role?.id);
 
     // ── Búsqueda por matrícula ──────────────────────────────
     const matricula = ref('');
-    const searchStatus = ref('idle'); // idle | searching | found | not-found
+    const searchStatus = ref('idle');
     const manualMode = ref(false);
 
     // ── Datos del estudiante ────────────────────────────────
-    const studentId = ref(null); // ✨ NUEVO: Guarda el ID real del estudiante
+    const studentId = ref(null);
     const studentName = ref('');
     const studentLastName = ref('');
     const studentCareerId = ref('');
@@ -40,6 +44,8 @@
     const discomfort = ref('');
     const indications = ref('');
     const observations = ref('');
+    const type = ref(null);          // área seleccionada (psicólogo)
+    const modalityId = ref(null);    // modalidad seleccionada (psicólogo)
 
     // ── Estado ──────────────────────────────────────────────
     const errors = ref({});
@@ -61,6 +67,15 @@
     const errorMessage = computed(() => {
         if (errors.value.general?.[0]) return errors.value.general[0];
         return 'Busca un estudiante o regístralo manualmente y completa los campos requeridos.';
+    });
+
+    // ── Validación de horas (front) ─────────────────────────
+    const timeRangeError = computed(() => {
+        if (!startTime.value || !endTime.value) return null;
+        if (endTime.value <= startTime.value) {
+            return 'La hora de término debe ser posterior a la hora de inicio.';
+        }
+        return null;
     });
 
     // ── Cargar grupos por carrera ───────────────────────────
@@ -116,7 +131,6 @@
 
             const s = await res.json();
 
-            // ✨ Asignamos el ID del estudiante que viene del backend
             studentId.value = s.student_id;
             studentName.value = s.name ?? '';
             studentLastName.value = s.last_name ?? '';
@@ -142,7 +156,7 @@
         errors.value = {};
 
         matricula.value = '';
-        studentId.value = null; // ✨ Limpiamos el ID
+        studentId.value = null;
         studentName.value = '';
         studentLastName.value = '';
         studentCareerId.value = '';
@@ -160,7 +174,7 @@
         errors.value = {};
 
         matricula.value = '';
-        studentId.value = null; // ✨ Limpiamos el ID
+        studentId.value = null;
         studentName.value = '';
         studentLastName.value = '';
         studentCareerId.value = '';
@@ -178,7 +192,14 @@
     const isValid = computed(() => {
         if (!appointmentDate.value) return false;
         if (!startTime.value || !endTime.value) return false;
+        if (timeRangeError.value) return false; // fin > inicio
         if (!discomfort.value.trim()) return false;
+
+        // Psicólogo: requiere área y modalidad
+        if (rolId.value === 5) {
+            if (!type.value?.id) return false;
+            if (!modalityId.value) return false;
+        }
 
         if (manualMode.value) {
             if (!studentName.value.trim()) return false;
@@ -201,7 +222,7 @@
         const payload = {
             matricula: manualMode.value ? null : matricula.value.trim(),
             manual: manualMode.value,
-            student_id: studentId.value, // ✨ Enviamos el ID al backend
+            student_id: studentId.value,
             student_name: studentName.value.trim(),
             student_last_name: studentLastName.value.trim(),
             career_id: manualMode.value
@@ -210,13 +231,19 @@
             group_id: manualMode.value
                 ? Number(selectedGroup.value)
                 : Number(studentGroupId.value),
-            appointment_date: appointmentDate.value, // El backend lo guardará como consultation_date
-            start_time: startTime.value,             // El backend lo guardará como time_start
-            end_time: endTime.value,                 // El backend lo guardará como time_end
-            discomfort: discomfort.value.trim(),     // El backend lo guardará como reason
-            indications: indications.value.trim(),   // El backend lo guardará como instructions
-            observations: observations.value.trim(), // El backend lo guardará como notes
+            appointment_date: appointmentDate.value,
+            start_time: startTime.value,
+            end_time: endTime.value,
+            discomfort: discomfort.value.trim(),
+            indications: indications.value.trim(),
+            observations: observations.value.trim(),
         };
+
+        // Solo el psicólogo envía área y modalidad
+        if (rolId.value === 5) {
+            payload.area_id = type.value?.id ?? null;
+            payload.modality_id = modalityId.value ?? null;
+        }
 
         try {
             const csrfToken = document
@@ -247,7 +274,12 @@
                 return;
             }
 
-            router.visit('/dashboard/nurse');
+            // Redirigir según el rol
+            if (rolId.value === 5) {
+                router.visit('/dashboard/psychologist');
+            } else {
+                router.visit('/dashboard/nurse');
+            }
         } catch (e) {
             console.error(e);
             errors.value = { general: ['Error de conexión al guardar la cita.'] };
@@ -255,10 +287,37 @@
             saving.value = false;
         }
     };
+
+    const titles = computed(() => {
+        const rol = rolId.value;
+        if (!rol) return [];
+
+        const map = {
+            4: {
+                title: 'Registrar cita',
+                subtitle: 'Busca al estudiante y completa los datos de la consulta médica',
+                buttonTitle: 'Terminar registro',
+                detail1: 'Malestar / Motivo de la consulta',
+                subdetail1: 'Describe el malestar o motivo de la consulta...',
+                subdetail2: 'Medicamentos, tratamientos, cuidados o seguimiento...',
+                subdetail3: 'Agrega notas generales, signos vitales u observaciones complementarias...'
+            },
+            5: {
+                title: 'Nueva cita psicología',
+                subtitle: 'Registra al paciente, el servicio y la información de la consulta',
+                buttonTitle: 'Registrar cita',
+                detail1: 'Motivo de consulta',
+                subdetail1: 'Describe el motivo principal...',
+                subdetail2: 'Plan inicial, recomendaciones o seguimiento...',
+                subdetail3: 'Contexto adicional u observaciones relevantes...'
+            },
+        };
+
+        return map[rol] ?? [];
+    });
 </script>
 
 <template>
-    <!-- El template se mantiene exactamente igual que en tu archivo -->
     <div class="min-h-screen flex flex-col">
         <Navbar />
 
@@ -272,9 +331,9 @@
                         <AppIcon name="chevronLeft" :size="18" color="var(--color-stone700)" />
                     </button>
                     <div>
-                        <h1 class="text-2xl font-semibold text-stone-900">Registrar cita</h1>
+                        <h1 class="text-2xl font-semibold text-stone-900"> {{ titles.title }} </h1>
                         <p class="text-sm text-stone-500">
-                            Busca al estudiante y completa los datos de la consulta médica
+                            {{ titles.subtitle }}
                         </p>
                     </div>
                 </div>
@@ -282,7 +341,6 @@
                 <div class="p-8 bg-white rounded-2xl hover:shadow-sm transition-shadow border border-stone-100">
                     <div class="flex flex-col gap-8">
 
-                        <!-- ── Identificación del estudiante ───────────── -->
                         <div>
                             <p class="text-xs font-bold uppercase tracking-wider mb-4 text-stone-400">
                                 Identificación del estudiante
@@ -400,7 +458,60 @@
                             </div>
                         </div>
 
-                        <!-- ── Datos de la consulta ───────────────────── -->
+                        <!-- ── Servicio y modalidad (psicólogo) ──────── -->
+                        <div v-if="rolId === 5">
+                            <p class="text-xs font-bold uppercase tracking-wider mb-4 text-stone-400">
+                                Servicio y modalidad
+                            </p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <button v-for="option in area" :key="option.id" @click="type = option"
+                                    class="rounded-2xl p-5 text-left border flex items-center gap-4 transition-colors"
+                                    :style="type?.id === option.id ? { background: 'var(--color-olive50)', borderColor: 'var(--color-olive500)' } : { borderColor: 'var(--color-stone100)' }">
+
+                                    <div class="w-11 h-11 rounded-xl flex items-center justify-center"
+                                        :style="{ background: type?.id === option.id ? 'var(--color-olive200)' : 'var(--color-stone100)' }">
+                                        <AppIcon v-if="option.id === 1" name="leaf" size="20"
+                                            color="var(--color-olive700)" />
+                                        <AppIcon v-else name="graduationCap" size="20" color="var(--color-olive700)" />
+                                    </div>
+
+                                    <div class="flex-1">
+                                        <p class="font-semibold" :style="{ color: 'var(--color-stone900)' }">
+                                            {{ option.name }}
+                                        </p>
+                                        <p class="text-xs mt-1" :style="{ color: 'var(--color-stone500)' }">
+                                            {{ option.id === 1
+                                            ? 'Acompañamiento emocional y salud mental'
+                                            : 'Aprendizaje, hábitos y orientación académica' }}
+                                        </p>
+                                    </div>
+
+                                    <AppIcon v-if="type?.id === option.id" name="check" size="18"
+                                        color="var(--color-olive600)" />
+                                </button>
+                            </div>
+                            <p v-if="errors.area_id" class="text-xs text-red-600 mb-4">
+                                {{ errors.area_id[0] }}
+                            </p>
+
+                            <!-- Modalidad -->
+                            <div class="flex flex-col gap-1.5 max-w-sm">
+                                <label class="text-xs font-semibold uppercase tracking-wider text-stone-500">
+                                    Modalidad
+                                </label>
+                                <select v-model="modalityId" name="modality_id"
+                                    class="w-full rounded-xl border bg-white text-sm outline-none py-3 px-4 border-stone-300 text-stone-900">
+                                    <option :value="null" disabled>Selecciona una modalidad</option>
+                                    <option v-for="m in modality" :key="m.id" :value="m.id">
+                                        {{ m.name }}
+                                    </option>
+                                </select>
+                                <p v-if="errors.modality_id" class="text-xs text-red-600">
+                                    {{ errors.modality_id[0] }}
+                                </p>
+                            </div>
+                        </div>
+
                         <div>
                             <p class="text-xs font-bold uppercase tracking-wider mb-4 text-stone-400">
                                 Datos de la consulta
@@ -415,13 +526,26 @@
                                     v-model="endTime" />
                             </div>
 
+                            <!-- Error de rango de horas (front) -->
+                            <p v-if="timeRangeError" class="text-xs text-red-600 mb-4">
+                                {{ timeRangeError }}
+                            </p>
+                            <p v-if="errors.start_time" class="text-xs text-red-600 mb-4">
+                                {{ errors.start_time[0] }}
+                            </p>
+                            <p v-if="errors.end_time" class="text-xs text-red-600 mb-4">
+                                {{ errors.end_time[0] }}
+                            </p>
+                            <p v-if="errors.appointment_date" class="text-xs text-red-600 mb-4">
+                                {{ errors.appointment_date[0] }}
+                            </p>
+
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div class="flex flex-col gap-1.5">
                                     <label class="text-xs font-semibold uppercase tracking-wider text-stone-500">
-                                        Malestar / Motivo de la consulta
+                                        {{ titles.detail1 }}
                                     </label>
-                                    <textarea v-model="discomfort"
-                                        placeholder="Describe el malestar o motivo de la consulta..."
+                                    <textarea v-model="discomfort" :placeholder="titles.subdetail1"
                                         class="rounded-xl border px-4 py-3 text-sm outline-none resize-none h-36 text-stone-900 border-stone-300"></textarea>
                                     <p v-if="errors.discomfort" class="text-xs text-red-600">
                                         {{ errors.discomfort[0] }}
@@ -432,8 +556,7 @@
                                     <label class="text-xs font-semibold uppercase tracking-wider text-stone-500">
                                         Indicaciones
                                     </label>
-                                    <textarea v-model="indications"
-                                        placeholder="Medicamentos, tratamiento, cuidados o seguimiento..."
+                                    <textarea v-model="indications" :placeholder="titles.subdetail2"
                                         class="rounded-xl border px-4 py-3 text-sm outline-none resize-none h-36 text-stone-900 border-stone-300"></textarea>
                                 </div>
 
@@ -441,8 +564,7 @@
                                     <label class="text-xs font-semibold uppercase tracking-wider text-stone-500">
                                         Observaciones generales
                                     </label>
-                                    <textarea v-model="observations"
-                                        placeholder="Agrega notas generales, signos vitales u observaciones complementarias..."
+                                    <textarea v-model="observations" :placeholder="titles.subdetail3"
                                         class="rounded-xl border px-4 py-3 text-sm outline-none resize-none h-28 text-stone-900 border-stone-300"></textarea>
                                 </div>
                             </div>
@@ -464,7 +586,7 @@
                             </button>
                             <button @click="submitAppointment" :disabled="!isValid || saving"
                                 class="rounded-xl font-semibold transition-all active:scale-[0.97] select-none inline-flex items-center justify-center gap-2 px-8 py-3.5 text-base bg-olive600 text-white disabled:opacity-40 disabled:cursor-not-allowed">
-                                {{ saving ? 'Guardando...' : 'Terminar registro' }}
+                                {{ saving ? 'Guardando...' : titles.buttonTitle }}
                             </button>
                         </div>
 

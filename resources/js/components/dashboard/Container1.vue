@@ -1,5 +1,5 @@
 <script setup>
-    import { computed } from 'vue';
+    import { ref, computed, onMounted, onUnmounted } from 'vue'
     import { usePage, Link } from '@inertiajs/vue3';
 
     import AppIcon from '../../components/AppIcon.vue';
@@ -10,6 +10,22 @@
     const rolId = computed(() => usuario.value?.role?.id);
     const name = computed(() => usuario.value.first_name ?? 'usuario');
     const last_name = computed(() => usuario.value.last_name ?? '');
+
+
+    const hour = ref(new Date().getHours())
+    let interval
+
+    onMounted(() => {
+        interval = setInterval(() => {
+            hour.value = new Date().getHours()
+        }, 60 * 1000)
+    })
+
+    onUnmounted(() => clearInterval(interval))
+
+    const greeting = computed(() =>
+        hour.value < 12 ? 'Buenos días' : hour.value < 18 ? 'Buenas tardes' : 'Buenas noches'
+    )
 
     const text = {
         1: {
@@ -39,7 +55,7 @@
         5: {
             title: '',
             button: 'Nueva cita',
-            buttonRoute: ''
+            buttonRoute: '/appointments/Medical'
         }
     }
 
@@ -51,8 +67,11 @@
     <div>
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
             <div v-if="rolId === 5">
-                <p class="text-base font-medium mb-1 text-stone-500"> Hola! </p>
+                <p class="text-base font-medium mb-1 text-stone-500"> {{ greeting }} </p>
                 <h1 class="text-2xl sm:text-3xl font-semibold text-stone-900"> {{name}} {{last_name}} </h1>
+                <p className="text-sm mt-1 text-stone400">
+                    Tu agenda y seguimiento de pacientes
+                </p>
             </div>
             <div v-else>
                 <h1 class="text-2xl sm:text-3xl font-semibold text-stone-900">{{titles.title}}</h1>
@@ -66,7 +85,7 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-8">
-                <Card />
+            <Card />
         </div>
 
     </div>
